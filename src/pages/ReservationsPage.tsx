@@ -351,7 +351,7 @@ export default function ReservationsPage() {
 
       {/* Create Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <form onSubmit={handleCreateSubmit}>
             <DialogHeader>
               <DialogTitle>New Reservation</DialogTitle>
