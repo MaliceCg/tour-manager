@@ -174,7 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!orgData) throw new Error('Organization not found');
 
       // Default role for joiners
-      const { error: roleError } = await supabase.from('user_roles').insert({ user_id: user.id, role: 'staff' });
+      const { error: roleError } = await supabase.from('user_roles').insert({ user_id: user.id, role: 'member' });
 
       // Ignore unique violation if role already exists
       const roleCode = (roleError as any)?.code?.toString?.();

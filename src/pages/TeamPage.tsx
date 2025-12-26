@@ -27,7 +27,7 @@ export default function TeamPage() {
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberPassword, setNewMemberPassword] = useState('');
-  const [newMemberRole, setNewMemberRole] = useState<AppRole>('staff');
+  const [newMemberRole, setNewMemberRole] = useState<AppRole>('member');
 
   // Fetch team members
   const { data: members = [], isLoading } = useQuery({
