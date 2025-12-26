@@ -5,12 +5,25 @@ import {
   Clock, 
   Users, 
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  UserCircle,
+  LogOut,
+  Building2,
+  UsersRound
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/features/auth';
 
 const navigation = [
   { name: 'Activities', href: '/activities', icon: Compass },
@@ -19,8 +32,17 @@ const navigation = [
   { name: 'Reservations', href: '/reservations', icon: Users },
 ];
 
+const adminNavigation = [
+  { name: 'Team', href: '/team', icon: UsersRound },
+];
+
 export function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const { profile, organization, signOut, isAdmin } = useAuth();
+
+  const allNavigation = isAdmin 
+    ? [...navigation, ...adminNavigation] 
+    : navigation;
 
   return (
     <div className="min-h-screen flex w-full">
@@ -54,12 +76,22 @@ export function AppLayout() {
             </Button>
           </div>
 
+          {/* Organization badge */}
+          {!collapsed && organization && (
+            <div className="px-4 py-3 border-b border-sidebar-border">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Building2 className="h-4 w-4" />
+                <span className="truncate">{organization.name}</span>
+              </div>
+            </div>
+          )}
+
           {/* Navigation */}
           <nav className={cn(
             "flex-1 py-6 space-y-1",
             collapsed ? "px-2" : "px-4"
           )}>
-            {navigation.map((item) => (
+            {allNavigation.map((item) => (
               collapsed ? (
                 <Tooltip key={item.name} delayDuration={0}>
                   <TooltipTrigger asChild>
@@ -97,14 +129,45 @@ export function AppLayout() {
             ))}
           </nav>
 
-          {/* Footer */}
-          {!collapsed && (
-            <div className="p-4 border-t border-sidebar-border">
-              <p className="text-xs text-muted-foreground">
-                Tour Operator Management
-              </p>
-            </div>
-          )}
+          {/* User section */}
+          <div className={cn(
+            "border-t border-sidebar-border",
+            collapsed ? "p-2" : "p-4"
+          )}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className={cn(
+                    "w-full justify-start",
+                    collapsed ? "px-0 justify-center" : "px-2"
+                  )}
+                >
+                  <UserCircle className="h-5 w-5" />
+                  {!collapsed && (
+                    <span className="ml-2 truncate text-sm">
+                      {profile?.full_name || profile?.email || 'User'}
+                    </span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col">
+                    <span>{profile?.full_name || 'User'}</span>
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {profile?.email}
+                    </span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut} className="text-destructive">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </aside>
 
