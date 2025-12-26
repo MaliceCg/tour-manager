@@ -145,13 +145,28 @@ export default function SchedulePage() {
     }
   };
 
+  // Separate future and past slots
+  const todayStr = new Date().toISOString().split('T')[0];
+  
+  const futureSlots = slots?.filter(slot => slot.date >= todayStr) || [];
+  const pastSlots = slots?.filter(slot => slot.date < todayStr) || [];
+  
+  // Sort future slots ascending (soonest first), past slots descending (most recent first)
+  futureSlots.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  pastSlots.sort((a, b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
+
   // Group slots by date
-  const groupedSlots = slots?.reduce((acc, slot) => {
-    const date = slot.date;
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(slot);
-    return acc;
-  }, {} as Record<string, typeof slots>);
+  const groupSlotsByDate = (slotsToGroup: typeof slots) => {
+    return slotsToGroup?.reduce((acc, slot) => {
+      const date = slot.date;
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(slot);
+      return acc;
+    }, {} as Record<string, typeof slots>) || {};
+  };
+
+  const groupedFutureSlots = groupSlotsByDate(futureSlots);
+  const groupedPastSlots = groupSlotsByDate(pastSlots);
 
   return (
     <div className="p-6 lg:p-8 animate-fade-in">
@@ -224,53 +239,120 @@ export default function SchedulePage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-6">
-              {Object.entries(groupedSlots || {}).map(([date, dateSlots]) => (
-                <div key={date}>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">
-                    {formatDate(date)}
+            <div className="space-y-8">
+              {/* Future Departures */}
+              {futureSlots.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+                    Upcoming Departures
                   </h3>
-                  <div className="space-y-2">
-                    {dateSlots?.map((slot) => (
-                      <Card key={slot.id} className="group">
-                        <CardContent className="flex items-center justify-between py-4">
-                          <div className="flex items-center gap-4">
-                            <div className="text-lg font-medium w-24">
-                              {formatTime(slot.time)}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Users className="h-4 w-4" />
-                              <span>
-                                {slot.reserved_seats}/{slot.total_seats} booked
-                              </span>
-                            </div>
-                            {slot.default_pickup_point && (
-                              <span className="text-sm text-muted-foreground">
-                                Pickup: {slot.default_pickup_point}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(slot)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => {
-                                setDeletingSlot(slot);
-                                setDeleteDialogOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
+                  <div className="space-y-6">
+                    {Object.entries(groupedFutureSlots).map(([date, dateSlots]) => (
+                      <div key={date}>
+                        <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                          {formatDate(date)}
+                        </h4>
+                        <div className="space-y-2">
+                          {dateSlots?.map((slot) => (
+                            <Card key={slot.id} className="group">
+                              <CardContent className="flex items-center justify-between py-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="text-lg font-medium w-24">
+                                    {formatTime(slot.time)}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Users className="h-4 w-4" />
+                                    <span>
+                                      {slot.reserved_seats}/{slot.total_seats} booked
+                                    </span>
+                                  </div>
+                                  {slot.default_pickup_point && (
+                                    <span className="text-sm text-muted-foreground">
+                                      Pickup: {slot.default_pickup_point}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(slot)}>
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => {
+                                      setDeletingSlot(slot);
+                                      setDeleteDialogOpen(true);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Past Departures */}
+              {pastSlots.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+                    Past Departures
+                  </h3>
+                  <div className="space-y-6 opacity-60">
+                    {Object.entries(groupedPastSlots).map(([date, dateSlots]) => (
+                      <div key={date}>
+                        <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                          {formatDate(date)}
+                        </h4>
+                        <div className="space-y-2">
+                          {dateSlots?.map((slot) => (
+                            <Card key={slot.id} className="group">
+                              <CardContent className="flex items-center justify-between py-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="text-lg font-medium w-24">
+                                    {formatTime(slot.time)}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Users className="h-4 w-4" />
+                                    <span>
+                                      {slot.reserved_seats}/{slot.total_seats} booked
+                                    </span>
+                                  </div>
+                                  {slot.default_pickup_point && (
+                                    <span className="text-sm text-muted-foreground">
+                                      Pickup: {slot.default_pickup_point}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(slot)}>
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => {
+                                      setDeletingSlot(slot);
+                                      setDeleteDialogOpen(true);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </>
