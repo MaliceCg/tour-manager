@@ -125,10 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const orgId = crypto.randomUUID();
 
       // Create organization (avoid SELECT-after-INSERT so RLS doesn't block)
-      const { error: orgError } = await supabase
-        .from('organizations')
-        .insert({ id: orgId, name });
-
+      const { error: orgError } = await supabase.from('organizations').insert({ id: orgId, name });
       if (orgError) throw orgError;
 
       // Link profile to org
@@ -136,17 +133,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from('profiles')
         .update({ organization_id: orgId })
         .eq('id', user.id);
-
       if (profileError) throw profileError;
 
       // Add admin role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: user.id, role: 'admin' });
-
+      const { error: roleError } = await supabase.from('user_roles').insert({ user_id: user.id, role: 'admin' });
       if (roleError) throw roleError;
 
+      // Optimistic local state so UI redirects immediately, then refresh from backend
+      setProfile((p) => (p ? ({ ...p, organization_id: orgId } as Profile) : p));
+      setOrganization({ id: orgId, name } as Organization);
       await fetchUserData(user.id);
+
       return { error: null };
     } catch (error) {
       return { error: error as Error };
@@ -160,18 +157,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const orgId = organizationId.trim();
       if (!orgId) return { error: new Error('Organization ID is required') };
 
-      // Link profile to org (we don't SELECT the org here; after linking, SELECT will be allowed)
+      // Link profile to org
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ organization_id: orgId })
         .eq('id', user.id);
-
       if (profileError) throw profileError;
 
+      // Fetch the org now that the user is linked (RLS should allow it)
+      const { data: orgData, error: orgSelectError } = await supabase
+        .from('organizations')
+        .select('id,name')
+        .eq('id', orgId)
+        .maybeSingle();
+      if (orgSelectError) throw orgSelectError;
+      if (!orgData) throw new Error('Organization not found');
+
       // Default role for joiners
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: user.id, role: 'staff' });
+      const { error: roleError } = await supabase.from('user_roles').insert({ user_id: user.id, role: 'staff' });
 
       // Ignore unique violation if role already exists
       const roleCode = (roleError as any)?.code?.toString?.();
@@ -179,7 +182,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw roleError;
       }
 
+      // Optimistic local state so UI redirects immediately, then refresh from backend
+      setProfile((p) => (p ? ({ ...p, organization_id: orgId } as Profile) : p));
+      setOrganization(orgData as Organization);
       await fetchUserData(user.id);
+
       return { error: null };
     } catch (error) {
       return { error: error as Error };
