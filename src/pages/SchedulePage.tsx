@@ -468,15 +468,15 @@ export default function SchedulePage() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <form onSubmit={handleSubmit}>
+        <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
             <DialogHeader>
               <DialogTitle>{editingSlot ? 'Modifier le créneau' : 'Nouveau créneau'}</DialogTitle>
               <DialogDescription>
                 {editingSlot ? 'Mettre à jour les détails du créneau' : 'Planifier un nouveau créneau'}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-2">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="date">Date</Label>
