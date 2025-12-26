@@ -12,11 +12,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Use external Supabase project (where the actual data is)
-    const supabaseUrl = Deno.env.get('EXTERNAL_SUPABASE_URL') || Deno.env.get('SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    // External Supabase project credentials (where the actual data is)
+    const supabaseUrl = 'https://qsmtpguuxkyhoasbmghr.supabase.co'
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzbXRwZ3V1eGt5aG9hc2JtZ2hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4NTc5MzYsImV4cCI6MjA4MDQzMzkzNn0.XGMn8pHRPCrx-LpbYr55BCXcys_E23Q4gNg-YO4KK1M'
     
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
     const url = new URL(req.url)
     const path = url.pathname.split('/').filter(Boolean)
