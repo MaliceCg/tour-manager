@@ -17,6 +17,7 @@ export interface CreateReservationInput {
   payment_mode: Reservation['payment_mode'];
   pickup_point: string | null;
   status: Reservation['status'];
+  organization_id: string;
 }
 
 export interface UpdateReservationInput extends Partial<Omit<Reservation, 'id' | 'created_at' | 'slot_id'>> {

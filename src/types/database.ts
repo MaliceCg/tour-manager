@@ -8,6 +8,7 @@ export interface Activity {
   capacity: number;
   price: number;
   payment_type: PaymentType;
+  organization_id: string | null;
   created_at: string;
 }
 
@@ -19,6 +20,7 @@ export interface Slot {
   total_seats: number;
   reserved_seats: number;
   default_pickup_point: string | null;
+  organization_id: string | null;
   created_at: string;
 }
 
@@ -32,6 +34,7 @@ export interface Reservation {
   payment_mode: PaymentType;
   pickup_point: string | null;
   status: ReservationStatus;
+  organization_id: string | null;
   created_at: string;
 }
 

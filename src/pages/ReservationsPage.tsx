@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/features/auth';
 import {
   useReservations,
   useCreateReservation,
@@ -16,6 +17,7 @@ import { useActivities } from '@/features/activities';
 import { useSlots } from '@/features/slots';
 
 export default function ReservationsPage() {
+  const { organization } = useAuth();
   const { data: activities } = useActivities();
   const { data: slots } = useSlots();
 
@@ -41,6 +43,7 @@ export default function ReservationsPage() {
       payment_mode: uiWithData.createFormData.payment_mode,
       pickup_point: uiWithData.createFormData.pickup_point || null,
       status: uiWithData.createFormData.status,
+      organization_id: organization?.id || '',
     });
     uiWithData.setCreateDialogOpen(false);
   };

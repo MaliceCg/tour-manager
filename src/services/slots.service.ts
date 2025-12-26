@@ -7,6 +7,7 @@ export interface CreateSlotInput {
   time: string;
   total_seats: number;
   default_pickup_point: string | null;
+  organization_id: string;
 }
 
 export interface UpdateSlotInput extends Partial<CreateSlotInput> {

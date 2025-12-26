@@ -7,13 +7,14 @@ export interface CreateActivityInput {
   capacity: number;
   price: number;
   payment_type: Activity['payment_type'];
+  organization_id: string;
 }
 
-export interface UpdateActivityInput extends Partial<CreateActivityInput> {
+export interface UpdateActivityInput extends Partial<Omit<CreateActivityInput, 'organization_id'>> {
   id: string;
 }
 
-// Fetch all activities
+// Fetch all activities (RLS filters by organization automatically)
 export async function fetchActivities(): Promise<Activity[]> {
   const { data, error } = await supabase
     .from('activity')

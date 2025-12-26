@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/features/auth';
 import {
   useActivities,
   useCreateActivity,
@@ -14,6 +15,7 @@ import {
 
 export default function ActivitiesPage() {
   const navigate = useNavigate();
+  const { organization } = useAuth();
   const { data: activities, isLoading } = useActivities();
   const createActivity = useCreateActivity();
   const updateActivity = useUpdateActivity();
@@ -26,7 +28,10 @@ export default function ActivitiesPage() {
     if (ui.editingActivity) {
       await updateActivity.mutateAsync({ id: ui.editingActivity.id, ...ui.formData });
     } else {
-      await createActivity.mutateAsync(ui.formData);
+      await createActivity.mutateAsync({
+        ...ui.formData,
+        organization_id: organization?.id || ''
+      });
     }
     ui.closeDialog();
   };

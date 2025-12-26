@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, ChevronLeft, Users } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { useActivities, useActivity } from '@/features/activities';
 import { useSlots, useCreateSlot, useUpdateSlot, useDeleteSlot } from '@/features/slots';
+import { useAuth } from '@/features/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -41,6 +42,7 @@ interface SlotFormData {
 export default function SchedulePage() {
   const { activityId } = useParams();
   const navigate = useNavigate();
+  const { organization } = useAuth();
   
   const { data: activities, isLoading: loadingActivities } = useActivities();
   const { data: activity } = useActivity(activityId);
@@ -112,7 +114,10 @@ export default function SchedulePage() {
     if (editingSlot) {
       await updateSlot.mutateAsync({ id: editingSlot.id, ...data });
     } else {
-      await createSlot.mutateAsync(data);
+      await createSlot.mutateAsync({
+        ...data,
+        organization_id: organization?.id || '',
+      });
     }
     
     setDialogOpen(false);
