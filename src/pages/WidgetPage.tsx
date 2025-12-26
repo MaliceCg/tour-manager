@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle, CalendarIcon, Users, MapPin, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatPrice } from '@/lib/formatters';
 import type { Activity, SlotWithActivity } from '@/types/database';
 
 const API_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/widget-api`;
@@ -171,9 +172,9 @@ export default function WidgetPage() {
           {activity.description && (
             <CardDescription>{activity.description}</CardDescription>
           )}
-          <div className="flex items-center justify-center gap-4 mt-2">
+          <div className="flex items-center justify-center gap-4 mt-2 flex-wrap">
             <Badge variant="secondary" className="text-sm">
-              {activity.price.toFixed(2)} € / personne
+              {formatPrice(activity.price)} / personne
             </Badge>
             <Badge variant="outline" className="text-sm">
               <Users className="h-3 w-3 mr-1" />
@@ -354,8 +355,8 @@ export default function WidgetPage() {
               <div className="bg-muted/50 rounded-lg p-4">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Total à payer sur place</span>
-                  <span className="text-xl font-bold">
-                    {(activity.price * formData.people_count).toFixed(2)} €
+                  <span className="text-lg font-bold">
+                    {formatPrice(activity.price * formData.people_count)}
                   </span>
                 </div>
               </div>
@@ -402,7 +403,7 @@ export default function WidgetPage() {
                 <p><strong>Date :</strong> {selectedSlot && format(parseISO(selectedSlot.date), 'EEEE d MMMM yyyy', { locale: fr })}</p>
                 <p><strong>Heure :</strong> {selectedSlot?.time}</p>
                 <p><strong>Personnes :</strong> {formData.people_count}</p>
-                <p><strong>Montant :</strong> {(activity.price * formData.people_count).toFixed(2)} € (à régler sur place)</p>
+                <p><strong>Montant :</strong> {formatPrice(activity.price * formData.people_count)} (à régler sur place)</p>
               </div>
             </div>
           )}
