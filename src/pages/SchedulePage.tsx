@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Trash2, ChevronLeft, Users } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { useActivities, useActivity } from '@/hooks/useActivities';
-import { useSlots, useCreateSlot, useUpdateSlot, useDeleteSlot } from '@/hooks/useSlots';
+import { useActivities, useActivity } from '@/features/activities';
+import { useSlots, useCreateSlot, useUpdateSlot, useDeleteSlot } from '@/features/slots';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -28,7 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Slot, Activity } from '@/types/database';
+import type { Slot, SlotWithActivity } from '@/types/database';
 
 interface SlotFormData {
   activity_id: string;
@@ -156,13 +156,13 @@ export default function SchedulePage() {
   pastSlots.sort((a, b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
 
   // Group slots by date
-  const groupSlotsByDate = (slotsToGroup: typeof slots) => {
-    return slotsToGroup?.reduce((acc, slot) => {
+  const groupSlotsByDate = (slotsToGroup: SlotWithActivity[]) => {
+    return slotsToGroup.reduce((acc, slot) => {
       const date = slot.date;
       if (!acc[date]) acc[date] = [];
       acc[date].push(slot);
       return acc;
-    }, {} as Record<string, typeof slots>) || {};
+    }, {} as Record<string, SlotWithActivity[]>);
   };
 
   const groupedFutureSlots = groupSlotsByDate(futureSlots);
