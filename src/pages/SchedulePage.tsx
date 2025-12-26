@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ChevronLeft, Users } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { Plus, Pencil, Trash2, ChevronLeft, Users, CalendarClock } from 'lucide-react';
+import { format, parseISO, addWeeks, addMonths, addDays, getDay, startOfWeek, isBefore, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useActivities, useActivity } from '@/features/activities';
 import { useSlots, useCreateSlot, useUpdateSlot, useDeleteSlot } from '@/features/slots';
@@ -30,7 +30,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { Slot, SlotWithActivity } from '@/types/database';
+
+type RecurrenceFrequency = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+
+interface RecurrenceOptions {
+  enabled: boolean;
+  frequency: RecurrenceFrequency;
+  days: number[]; // 0 = Sunday, 1 = Monday, etc.
+  endDate: string;
+}
+
+const WEEKDAYS = [
+  { value: 1, label: 'Lun' },
+  { value: 2, label: 'Mar' },
+  { value: 3, label: 'Mer' },
+  { value: 4, label: 'Jeu' },
+  { value: 5, label: 'Ven' },
+  { value: 6, label: 'Sam' },
+  { value: 0, label: 'Dim' },
+];
+
+const FREQUENCY_OPTIONS = [
+  { value: 'weekly', label: 'Chaque semaine' },
+  { value: 'monthly', label: 'Chaque mois' },
+  { value: 'quarterly', label: 'Chaque trimestre' },
+  { value: 'yearly', label: 'Chaque année' },
+];
 
 interface SlotFormData {
   activity_id: string;
@@ -61,12 +89,21 @@ export default function SchedulePage() {
   const [deletingSlot, setDeletingSlot] = useState<Slot | null>(null);
   
   const today = new Date().toISOString().split('T')[0];
+  const defaultEndDate = format(addMonths(new Date(), 3), 'yyyy-MM-dd');
+  
   const [formData, setFormData] = useState<SlotFormData>({
     activity_id: selectedActivityId,
     date: today,
     time: '09:00',
     total_seats: 10,
     default_pickup_point: '',
+  });
+
+  const [recurrence, setRecurrence] = useState<RecurrenceOptions>({
+    enabled: false,
+    frequency: 'weekly',
+    days: [getDay(new Date())], // Default to today's day
+    endDate: defaultEndDate,
   });
 
   const handleActivityChange = (id: string) => {
@@ -89,6 +126,12 @@ export default function SchedulePage() {
       total_seats: selectedActivity?.capacity || 10,
       default_pickup_point: '',
     });
+    setRecurrence({
+      enabled: false,
+      frequency: 'weekly',
+      days: [getDay(new Date())],
+      endDate: format(addMonths(new Date(), 3), 'yyyy-MM-dd'),
+    });
     setDialogOpen(true);
   };
 
@@ -104,6 +147,58 @@ export default function SchedulePage() {
     setDialogOpen(true);
   };
 
+  // Generate all dates based on recurrence settings
+  const generateRecurringDates = (): string[] => {
+    if (!recurrence.enabled) {
+      return [formData.date];
+    }
+
+    const dates: string[] = [];
+    const startDate = parseISO(formData.date);
+    const endDate = parseISO(recurrence.endDate);
+    
+    // For each selected day, generate dates
+    for (const dayOfWeek of recurrence.days) {
+      // Find the first occurrence of this day starting from startDate
+      let currentDate = startDate;
+      const startDayOfWeek = getDay(startDate);
+      
+      // Calculate days until the target day
+      let daysUntilTarget = dayOfWeek - startDayOfWeek;
+      if (daysUntilTarget < 0) daysUntilTarget += 7;
+      
+      currentDate = addDays(startDate, daysUntilTarget);
+      
+      // If the first occurrence is before start date, move to next week
+      if (isBefore(currentDate, startDate)) {
+        currentDate = addDays(currentDate, 7);
+      }
+
+      // Generate dates based on frequency
+      while (!isAfter(currentDate, endDate)) {
+        dates.push(format(currentDate, 'yyyy-MM-dd'));
+        
+        switch (recurrence.frequency) {
+          case 'weekly':
+            currentDate = addWeeks(currentDate, 1);
+            break;
+          case 'monthly':
+            currentDate = addMonths(currentDate, 1);
+            break;
+          case 'quarterly':
+            currentDate = addMonths(currentDate, 3);
+            break;
+          case 'yearly':
+            currentDate = addMonths(currentDate, 12);
+            break;
+        }
+      }
+    }
+
+    // Remove duplicates and sort
+    return [...new Set(dates)].sort();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -115,14 +210,31 @@ export default function SchedulePage() {
     if (editingSlot) {
       await updateSlot.mutateAsync({ id: editingSlot.id, ...data });
     } else {
-      await createSlot.mutateAsync({
-        ...data,
-        organization_id: organization?.id || '',
-      });
+      const datesToCreate = generateRecurringDates();
+      
+      // Create slots for all dates
+      for (const date of datesToCreate) {
+        await createSlot.mutateAsync({
+          ...data,
+          date,
+          organization_id: organization?.id || '',
+        });
+      }
     }
     
     setDialogOpen(false);
   };
+
+  const toggleDay = (day: number) => {
+    setRecurrence(prev => ({
+      ...prev,
+      days: prev.days.includes(day)
+        ? prev.days.filter(d => d !== day)
+        : [...prev.days, day],
+    }));
+  };
+
+  const previewCount = recurrence.enabled ? generateRecurringDates().length : 1;
 
   const handleDelete = async () => {
     if (deletingSlot) {
@@ -407,13 +519,92 @@ export default function SchedulePage() {
                   placeholder="ex. Hall de l'hôtel, Entrée de la plage"
                 />
               </div>
+
+              {/* Recurrence section - only show when creating */}
+              {!editingSlot && (
+                <div className="space-y-4 pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CalendarClock className="h-4 w-4 text-muted-foreground" />
+                      <Label htmlFor="recurrence-toggle">Récurrence</Label>
+                    </div>
+                    <Switch
+                      id="recurrence-toggle"
+                      checked={recurrence.enabled}
+                      onCheckedChange={(checked) => setRecurrence(prev => ({ ...prev, enabled: checked }))}
+                    />
+                  </div>
+
+                  {recurrence.enabled && (
+                    <div className="space-y-4 pl-6 animate-fade-in">
+                      <div className="space-y-2">
+                        <Label>Fréquence</Label>
+                        <Select 
+                          value={recurrence.frequency} 
+                          onValueChange={(value: RecurrenceFrequency) => setRecurrence(prev => ({ ...prev, frequency: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FREQUENCY_OPTIONS.map(opt => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Jours de la semaine</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {WEEKDAYS.map(day => (
+                            <div key={day.value} className="flex items-center">
+                              <Checkbox
+                                id={`day-${day.value}`}
+                                checked={recurrence.days.includes(day.value)}
+                                onCheckedChange={() => toggleDay(day.value)}
+                              />
+                              <Label 
+                                htmlFor={`day-${day.value}`} 
+                                className="ml-2 text-sm font-normal cursor-pointer"
+                              >
+                                {day.label}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="end-date">Date de fin</Label>
+                        <Input
+                          id="end-date"
+                          type="date"
+                          value={recurrence.endDate}
+                          min={formData.date}
+                          onChange={(e) => setRecurrence(prev => ({ ...prev, endDate: e.target.value }))}
+                        />
+                      </div>
+
+                      <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+                        <strong>{previewCount}</strong> créneau{previewCount > 1 ? 'x' : ''} sera{previewCount > 1 ? 'ont' : ''} créé{previewCount > 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={createSlot.isPending || updateSlot.isPending}>
-                {editingSlot ? 'Enregistrer' : 'Créer le créneau'}
+              <Button 
+                type="submit" 
+                disabled={createSlot.isPending || updateSlot.isPending || (recurrence.enabled && recurrence.days.length === 0)}
+              >
+                {createSlot.isPending ? 'Création...' : editingSlot ? 'Enregistrer' : `Créer ${previewCount > 1 ? `${previewCount} créneaux` : 'le créneau'}`}
               </Button>
             </DialogFooter>
           </form>
