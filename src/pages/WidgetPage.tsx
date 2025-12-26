@@ -125,7 +125,7 @@ export default function WidgetPage() {
         throw new Error("Impossible de réserver: organization_id manquant sur l'activité / le créneau.");
       }
 
-      // Same reservation flow as the app (client-side insert + update reserved_seats)
+      // Widget reservations are pending (to be confirmed in backoffice)
       await createReservation({
         slot_id: selectedSlot.id,
         customer_name: formData.customer_name,
@@ -134,7 +134,7 @@ export default function WidgetPage() {
         amount_paid: 0,
         payment_mode: 'on_site',
         pickup_point: formData.pickup_point || null,
-        status: 'confirmed',
+        status: 'pending',
         organization_id: organizationId,
       });
 
@@ -405,10 +405,10 @@ export default function WidgetPage() {
 
           {step === 'success' && (
             <div className="text-center py-8 space-y-4">
-              <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-              <h2 className="text-xl font-semibold">Réservation confirmée !</h2>
+              <CheckCircle className="h-16 w-16 text-amber-500 mx-auto" />
+              <h2 className="text-xl font-semibold">Demande de réservation envoyée !</h2>
               <p className="text-muted-foreground">
-                Un email de confirmation a été envoyé à {formData.customer_email}
+                Votre demande est en attente de confirmation. Vous recevrez un email à {formData.customer_email} dès qu'elle sera validée.
               </p>
               <div className="bg-muted/50 rounded-lg p-4 text-left space-y-2">
                 <p><strong>Activité :</strong> {activity.name}</p>
