@@ -100,7 +100,7 @@ export function useReservationUI(reservations: ReservationWithSlot[] | undefined
     return { upcomingReservations: upcoming, pastReservations: past };
   }, [reservations]);
 
-  const hasFilters = filters.date || filters.activityId || filters.status;
+  const hasFilters = Boolean(filters.date || filters.activityId || filters.status);
 
   const openCreateDialog = () => {
     setSelectedActivityForCreate('');

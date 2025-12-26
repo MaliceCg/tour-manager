@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, addWeeks, subWeeks, parseISO } from 'date-fns';
-import { useSlotsForDateRange } from '@/hooks/useSlots';
-import { useReservations } from '@/hooks/useReservations';
+import { useSlotsForDateRange } from '@/features/slots';
+import { useReservations } from '@/features/reservations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
