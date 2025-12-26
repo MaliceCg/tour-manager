@@ -27,9 +27,38 @@ export function formatTime(time: string): string {
   }
 }
 
+// Taux de conversion EUR -> XPF (fixe)
+const EUR_TO_XPF = 119.332;
+
 export function formatPrice(price: number): string {
-  return new Intl.NumberFormat('en-US', {
+  const xpfPrice = Math.round(price * EUR_TO_XPF);
+  
+  const eurFormatted = new Intl.NumberFormat('fr-FR', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'EUR',
+  }).format(price);
+  
+  const xpfFormatted = new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'XPF',
+    maximumFractionDigits: 0,
+  }).format(xpfPrice);
+  
+  return `${eurFormatted} (${xpfFormatted})`;
+}
+
+export function formatPriceXPF(price: number): string {
+  const xpfPrice = Math.round(price * EUR_TO_XPF);
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'XPF',
+    maximumFractionDigits: 0,
+  }).format(xpfPrice);
+}
+
+export function formatPriceEUR(price: number): string {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
   }).format(price);
 }
