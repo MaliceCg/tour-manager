@@ -27,7 +27,7 @@ export default function SetupOrganizationPage() {
   }
 
   if (hasOrganization) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleCreate = async (e: React.FormEvent) => {
