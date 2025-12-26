@@ -7,7 +7,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Trash2, Shield, User } from 'lucide-react';
+import { Plus, Trash2, Shield, User, Copy, Check } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import type { AppRole } from '@/features/auth';
 
 interface TeamMember {
@@ -21,6 +23,16 @@ export default function TeamPage() {
   const { organization, isAdmin, user } = useAuth();
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyOrgId = () => {
+    if (organization?.id) {
+      navigator.clipboard.writeText(organization.id);
+      setCopied(true);
+      toast.success("ID copié dans le presse-papiers");
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ['team-members', organization?.id],
@@ -159,9 +171,23 @@ export default function TeamPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              Pour ajouter un membre, demandez-lui de s'inscrire sur la page d'inscription.
-              Vous pourrez ensuite l'assigner à votre organisation.
+              Pour ajouter un membre, partagez l'ID de votre organisation ci-dessous. 
+              Le nouveau membre devra le saisir lors de son inscription pour rejoindre votre équipe.
             </p>
+            <div className="space-y-2">
+              <Label htmlFor="org-id">ID de l'organisation</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="org-id"
+                  value={organization?.id || ''}
+                  readOnly
+                  className="font-mono text-sm"
+                />
+                <Button variant="outline" size="icon" onClick={copyOrgId}>
+                  {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
