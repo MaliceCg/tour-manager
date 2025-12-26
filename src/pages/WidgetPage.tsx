@@ -13,23 +13,24 @@ import { Loader2, CheckCircle, CalendarIcon, Users, MapPin, Clock } from 'lucide
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/formatters';
 import type { Activity, SlotWithActivity } from '@/types/database';
-
-const API_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/widget-api`;
+import { fetchActivity } from '@/services/activities.service';
+import { fetchSlotsForDateRange } from '@/services/slots.service';
+import { createReservation } from '@/services/reservations.service';
 
 export default function WidgetPage() {
   const { activityId } = useParams<{ activityId: string }>();
-  
+
   const [activity, setActivity] = useState<Activity | null>(null);
   const [slots, setSlots] = useState<SlotWithActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedSlot, setSelectedSlot] = useState<SlotWithActivity | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  
+
   const [step, setStep] = useState<'calendar' | 'form' | 'success'>('calendar');
-  
+
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_email: '',
@@ -40,46 +41,46 @@ export default function WidgetPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  // Fetch activity info
+  // Fetch activity info (directly from the same DB as the app: src/lib/supabase.ts)
   useEffect(() => {
     if (!activityId) return;
-    
-    const fetchActivity = async () => {
+
+    const run = async () => {
       try {
-        const res = await fetch(`${API_BASE}/activity?id=${activityId}`);
-        if (!res.ok) throw new Error('Activité non trouvée');
-        const data = await res.json();
+        setError(null);
+        const data = await fetchActivity(activityId);
+        if (!data) throw new Error('Activité non trouvée');
         setActivity(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erreur inconnue');
       }
     };
-    
-    fetchActivity();
+
+    run();
   }, [activityId]);
 
   // Fetch slots when month changes
   useEffect(() => {
     if (!activityId) return;
-    
-    const fetchSlots = async () => {
+
+    const run = async () => {
       setLoading(true);
       try {
         const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
         const end = format(endOfMonth(addMonths(currentMonth, 1)), 'yyyy-MM-dd');
-        
-        const res = await fetch(`${API_BASE}/slots?activityId=${activityId}&startDate=${start}&endDate=${end}`);
-        if (!res.ok) throw new Error('Erreur lors du chargement des créneaux');
-        const data = await res.json();
-        setSlots(data);
+
+        const data = await fetchSlotsForDateRange(start, end, activityId);
+        // Keep only slots that still have available seats
+        const available = data.filter(s => (s.total_seats - s.reserved_seats) > 0);
+        setSlots(available);
       } catch (err) {
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchSlots();
+
+    run();
   }, [activityId, currentMonth]);
 
   // Get dates with available slots
@@ -113,25 +114,36 @@ export default function WidgetPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedSlot) return;
-    
+    if (!selectedSlot || !activity) return;
+
     setSubmitting(true);
     try {
-      const res = await fetch(`${API_BASE}/reservation`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          slot_id: selectedSlot.id,
-          ...formData,
-          payment_mode: 'on_site'
-        })
-      });
-      
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Erreur lors de la réservation');
+      setError(null);
+
+      const organizationId = selectedSlot.organization_id || activity.organization_id;
+      if (!organizationId) {
+        throw new Error("Impossible de réserver: organization_id manquant sur l'activité / le créneau.");
       }
-      
+
+      // Same reservation flow as the app (client-side insert + update reserved_seats)
+      await createReservation({
+        slot_id: selectedSlot.id,
+        customer_name: formData.customer_name,
+        customer_email: formData.customer_email,
+        people_count: formData.people_count,
+        amount_paid: 0,
+        payment_mode: 'on_site',
+        pickup_point: formData.pickup_point || null,
+        status: 'confirmed',
+        organization_id: organizationId,
+      });
+
+      // Refresh slots after booking
+      const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
+      const end = format(endOfMonth(addMonths(currentMonth, 1)), 'yyyy-MM-dd');
+      const refreshed = await fetchSlotsForDateRange(start, end, activityId);
+      setSlots(refreshed.filter(s => (s.total_seats - s.reserved_seats) > 0));
+
       setStep('success');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
@@ -140,8 +152,8 @@ export default function WidgetPage() {
     }
   };
 
-  const availableSeats = selectedSlot 
-    ? selectedSlot.total_seats - selectedSlot.reserved_seats 
+  const availableSeats = selectedSlot
+    ? selectedSlot.total_seats - selectedSlot.reserved_seats
     : 0;
 
   if (error && !activity) {
