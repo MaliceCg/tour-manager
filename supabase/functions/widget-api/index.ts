@@ -12,10 +12,18 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // External Supabase project credentials (where the actual data is)
-    const supabaseUrl = 'https://qsmtpguuxkyhoasbmghr.supabase.co'
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzbXRwZ3V1eGt5aG9hc2JtZ2hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4NTc5MzYsImV4cCI6MjA4MDQzMzkzNn0.XGMn8pHRPCrx-LpbYr55BCXcys_E23Q4gNg-YO4KK1M'
-    
+    // External Supabase project credentials (data source)
+    const supabaseUrl = Deno.env.get('EXTERNAL_SUPABASE_URL')
+    const supabaseAnonKey = Deno.env.get('EXTERNAL_SUPABASE_ANON_KEY')
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Missing external Supabase credentials')
+      return new Response(
+        JSON.stringify({ error: 'Server misconfigured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
     const url = new URL(req.url)
@@ -39,12 +47,20 @@ Deno.serve(async (req) => {
         .from('activity')
         .select('*')
         .eq('id', activityId)
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error('Error fetching activity:', error)
         return new Response(
-          JSON.stringify({ error: 'Activity not found' }),
+          JSON.stringify({ error: 'Failed to fetch activity' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      if (!activity) {
+        // With anon key, this often means either: not found OR blocked by RLS policies
+        return new Response(
+          JSON.stringify({ error: 'Activity not found or not publicly accessible' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
