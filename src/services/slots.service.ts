@@ -32,15 +32,25 @@ export async function fetchSlots(activityId?: string): Promise<SlotWithActivity[
   return data as SlotWithActivity[];
 }
 
-// Fetch slots for date range
-export async function fetchSlotsForDateRange(startDate: string, endDate: string): Promise<SlotWithActivity[]> {
-  const { data, error } = await supabase
+// Fetch slots for date range (optionally scoped to an activity)
+export async function fetchSlotsForDateRange(
+  startDate: string,
+  endDate: string,
+  activityId?: string
+): Promise<SlotWithActivity[]> {
+  let query = supabase
     .from('slot')
     .select('*, activity(*)')
     .gte('date', startDate)
     .lte('date', endDate)
     .order('date', { ascending: true })
     .order('time', { ascending: true });
+
+  if (activityId) {
+    query = query.eq('activity_id', activityId);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
   return data as SlotWithActivity[];
