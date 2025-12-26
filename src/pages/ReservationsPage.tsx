@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { format, parseISO } from 'date-fns';
+import { useState, useMemo } from 'react';
+import { format, parseISO, isAfter, startOfDay } from 'date-fns';
 import { Search, Pencil, XCircle, Filter, X, Plus } from 'lucide-react';
 import { useReservations, useCreateReservation, useUpdateReservation, useCancelReservation } from '@/hooks/useReservations';
 import { useActivities } from '@/hooks/useActivities';
@@ -210,6 +210,39 @@ export default function ReservationsPage() {
     );
   };
 
+  // Separate reservations into upcoming and past
+  const { upcomingReservations, pastReservations } = useMemo(() => {
+    if (!reservations) return { upcomingReservations: [], pastReservations: [] };
+    
+    const today = startOfDay(new Date());
+    
+    const upcoming = reservations
+      .filter((r) => {
+        if (!r.slot?.date) return false;
+        const slotDate = startOfDay(parseISO(r.slot.date));
+        return isAfter(slotDate, today) || slotDate.getTime() === today.getTime();
+      })
+      .sort((a, b) => {
+        const dateA = a.slot?.date ? parseISO(a.slot.date) : new Date(0);
+        const dateB = b.slot?.date ? parseISO(b.slot.date) : new Date(0);
+        return dateA.getTime() - dateB.getTime();
+      });
+
+    const past = reservations
+      .filter((r) => {
+        if (!r.slot?.date) return false;
+        const slotDate = startOfDay(parseISO(r.slot.date));
+        return slotDate.getTime() < today.getTime();
+      })
+      .sort((a, b) => {
+        const dateA = a.slot?.date ? parseISO(a.slot.date) : new Date(0);
+        const dateB = b.slot?.date ? parseISO(b.slot.date) : new Date(0);
+        return dateB.getTime() - dateA.getTime();
+      });
+
+    return { upcomingReservations: upcoming, pastReservations: past };
+  }, [reservations]);
+
   return (
     <div className="p-6 lg:p-8 animate-fade-in">
       <div className="flex items-center justify-between mb-8">
@@ -303,49 +336,104 @@ export default function ReservationsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {reservations.map((reservation) => (
-            <Card key={reservation.id} className="group">
-              <CardContent className="flex items-center justify-between py-4">
-                <div className="flex items-center gap-6">
-                  <div className="min-w-[140px]">
-                    <div className="font-medium">{reservation.customer_name}</div>
-                    <div className="text-sm text-muted-foreground">{reservation.customer_email}</div>
-                  </div>
-                  <div className="min-w-[150px]">
-                    <div className="text-sm font-medium">{reservation.slot?.activity?.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {reservation.slot?.date && formatDate(reservation.slot.date)} at {reservation.slot?.time && formatTime(reservation.slot.time)}
+        <div className="space-y-6">
+          {/* Upcoming Reservations */}
+          {upcomingReservations.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-lg font-semibold text-foreground">Upcoming Reservations</h2>
+              {upcomingReservations.map((reservation) => (
+                <Card key={reservation.id} className="group">
+                  <CardContent className="flex items-center justify-between py-4">
+                    <div className="flex items-center gap-6">
+                      <div className="min-w-[140px]">
+                        <div className="font-medium">{reservation.customer_name}</div>
+                        <div className="text-sm text-muted-foreground">{reservation.customer_email}</div>
+                      </div>
+                      <div className="min-w-[150px]">
+                        <div className="text-sm font-medium">{reservation.slot?.activity?.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {reservation.slot?.date && formatDate(reservation.slot.date)} at {reservation.slot?.time && formatTime(reservation.slot.time)}
+                        </div>
+                      </div>
+                      <div className="text-sm">
+                        {reservation.people_count} {reservation.people_count === 1 ? 'person' : 'people'}
+                      </div>
+                      <div className="text-sm">
+                        ${reservation.amount_paid.toFixed(2)}
+                      </div>
+                      {getStatusBadge(reservation.status)}
                     </div>
-                  </div>
-                  <div className="text-sm">
-                    {reservation.people_count} {reservation.people_count === 1 ? 'person' : 'people'}
-                  </div>
-                  <div className="text-sm">
-                    ${reservation.amount_paid.toFixed(2)}
-                  </div>
-                  {getStatusBadge(reservation.status)}
-                </div>
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(reservation)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  {reservation.status !== 'cancelled' && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        setSelectedReservation(reservation);
-                        setCancelDialogOpen(true);
-                      }}
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(reservation)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      {reservation.status !== 'cancelled' && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => {
+                            setSelectedReservation(reservation);
+                            setCancelDialogOpen(true);
+                          }}
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Past Reservations */}
+          {pastReservations.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-lg font-semibold text-muted-foreground">Past Reservations</h2>
+              {pastReservations.map((reservation) => (
+                <Card key={reservation.id} className="group opacity-60">
+                  <CardContent className="flex items-center justify-between py-4">
+                    <div className="flex items-center gap-6">
+                      <div className="min-w-[140px]">
+                        <div className="font-medium">{reservation.customer_name}</div>
+                        <div className="text-sm text-muted-foreground">{reservation.customer_email}</div>
+                      </div>
+                      <div className="min-w-[150px]">
+                        <div className="text-sm font-medium">{reservation.slot?.activity?.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {reservation.slot?.date && formatDate(reservation.slot.date)} at {reservation.slot?.time && formatTime(reservation.slot.time)}
+                        </div>
+                      </div>
+                      <div className="text-sm">
+                        {reservation.people_count} {reservation.people_count === 1 ? 'person' : 'people'}
+                      </div>
+                      <div className="text-sm">
+                        ${reservation.amount_paid.toFixed(2)}
+                      </div>
+                      {getStatusBadge(reservation.status)}
+                    </div>
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(reservation)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      {reservation.status !== 'cancelled' && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => {
+                            setSelectedReservation(reservation);
+                            setCancelDialogOpen(true);
+                          }}
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
