@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, ProtectedRoute } from "@/features/auth";
 import { AppLayout } from "./components/layout/AppLayout";
+import DashboardPage from "./pages/DashboardPage";
 import ActivitiesPage from "./pages/ActivitiesPage";
 import SchedulePage from "./pages/SchedulePage";
 import CalendarPage from "./pages/CalendarPage";
@@ -36,7 +37,8 @@ const App = () => (
                 <AppLayout />
               </ProtectedRoute>
             }>
-              <Route index element={<Navigate to="/activities" replace />} />
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="dashboard" element={<DashboardPage />} />
               <Route path="activities" element={<ActivitiesPage />} />
               <Route path="schedule" element={<SchedulePage />} />
               <Route path="schedule/:activityId" element={<SchedulePage />} />

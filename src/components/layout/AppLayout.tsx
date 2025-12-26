@@ -26,6 +26,7 @@ import {
 import { useAuth } from '@/features/auth';
 
 const navigation = [
+  { name: 'Dashboard', href: '/dashboard', icon: Building2 },
   { name: 'Activities', href: '/activities', icon: Compass },
   { name: 'Schedule', href: '/schedule', icon: Clock },
   { name: 'Calendar', href: '/calendar', icon: Calendar },
