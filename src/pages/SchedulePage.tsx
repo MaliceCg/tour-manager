@@ -34,13 +34,13 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { Slot, SlotWithActivity } from '@/types/database';
 
-type RecurrenceFrequency = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+type DurationPeriod = '1week' | '2weeks' | '1month' | '3months' | '6months' | '1year' | 'custom';
 
 interface RecurrenceOptions {
   enabled: boolean;
-  frequency: RecurrenceFrequency;
+  duration: DurationPeriod;
   days: number[]; // 0 = Sunday, 1 = Monday, etc.
-  endDate: string;
+  customEndDate: string;
 }
 
 const WEEKDAYS = [
@@ -53,11 +53,14 @@ const WEEKDAYS = [
   { value: 0, label: 'Dim' },
 ];
 
-const FREQUENCY_OPTIONS = [
-  { value: 'weekly', label: 'Chaque semaine' },
-  { value: 'monthly', label: 'Chaque mois' },
-  { value: 'quarterly', label: 'Chaque trimestre' },
-  { value: 'yearly', label: 'Chaque année' },
+const DURATION_OPTIONS = [
+  { value: '1week', label: 'Pour 1 semaine' },
+  { value: '2weeks', label: 'Pour 15 jours' },
+  { value: '1month', label: 'Pour 1 mois' },
+  { value: '3months', label: 'Pour 3 mois' },
+  { value: '6months', label: 'Pour 6 mois' },
+  { value: '1year', label: 'Pour 1 an' },
+  { value: 'custom', label: 'Date de fin personnalisée' },
 ];
 
 interface SlotFormData {
@@ -101,9 +104,9 @@ export default function SchedulePage() {
 
   const [recurrence, setRecurrence] = useState<RecurrenceOptions>({
     enabled: false,
-    frequency: 'weekly',
+    duration: '1month',
     days: [getDay(new Date())], // Default to today's day
-    endDate: defaultEndDate,
+    customEndDate: defaultEndDate,
   });
 
   const handleActivityChange = (id: string) => {
@@ -128,9 +131,9 @@ export default function SchedulePage() {
     });
     setRecurrence({
       enabled: false,
-      frequency: 'weekly',
+      duration: '1month',
       days: [getDay(new Date())],
-      endDate: format(addMonths(new Date(), 3), 'yyyy-MM-dd'),
+      customEndDate: format(addMonths(new Date(), 3), 'yyyy-MM-dd'),
     });
     setDialogOpen(true);
   };
@@ -147,6 +150,32 @@ export default function SchedulePage() {
     setDialogOpen(true);
   };
 
+  // Calculate the end date based on duration
+  const getEndDate = (): Date => {
+    const startDate = parseISO(formData.date);
+    
+    if (recurrence.duration === 'custom') {
+      return parseISO(recurrence.customEndDate);
+    }
+    
+    switch (recurrence.duration) {
+      case '1week':
+        return addWeeks(startDate, 1);
+      case '2weeks':
+        return addWeeks(startDate, 2);
+      case '1month':
+        return addMonths(startDate, 1);
+      case '3months':
+        return addMonths(startDate, 3);
+      case '6months':
+        return addMonths(startDate, 6);
+      case '1year':
+        return addMonths(startDate, 12);
+      default:
+        return addMonths(startDate, 1);
+    }
+  };
+
   // Generate all dates based on recurrence settings
   const generateRecurringDates = (): string[] => {
     if (!recurrence.enabled) {
@@ -155,9 +184,9 @@ export default function SchedulePage() {
 
     const dates: string[] = [];
     const startDate = parseISO(formData.date);
-    const endDate = parseISO(recurrence.endDate);
+    const endDate = getEndDate();
     
-    // For each selected day, generate dates
+    // For each selected day, generate all occurrences until end date
     for (const dayOfWeek of recurrence.days) {
       // Find the first occurrence of this day starting from startDate
       let currentDate = startDate;
@@ -174,24 +203,10 @@ export default function SchedulePage() {
         currentDate = addDays(currentDate, 7);
       }
 
-      // Generate dates based on frequency
+      // Generate all weekly occurrences until end date
       while (!isAfter(currentDate, endDate)) {
         dates.push(format(currentDate, 'yyyy-MM-dd'));
-        
-        switch (recurrence.frequency) {
-          case 'weekly':
-            currentDate = addWeeks(currentDate, 1);
-            break;
-          case 'monthly':
-            currentDate = addMonths(currentDate, 1);
-            break;
-          case 'quarterly':
-            currentDate = addMonths(currentDate, 3);
-            break;
-          case 'yearly':
-            currentDate = addMonths(currentDate, 12);
-            break;
-        }
+        currentDate = addWeeks(currentDate, 1);
       }
     }
 
@@ -538,25 +553,6 @@ export default function SchedulePage() {
                   {recurrence.enabled && (
                     <div className="space-y-4 pl-6 animate-fade-in">
                       <div className="space-y-2">
-                        <Label>Fréquence</Label>
-                        <Select 
-                          value={recurrence.frequency} 
-                          onValueChange={(value: RecurrenceFrequency) => setRecurrence(prev => ({ ...prev, frequency: value }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {FREQUENCY_OPTIONS.map(opt => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
                         <Label>Jours de la semaine</Label>
                         <div className="flex flex-wrap gap-2">
                           {WEEKDAYS.map(day => (
@@ -578,15 +574,36 @@ export default function SchedulePage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="end-date">Date de fin</Label>
-                        <Input
-                          id="end-date"
-                          type="date"
-                          value={recurrence.endDate}
-                          min={formData.date}
-                          onChange={(e) => setRecurrence(prev => ({ ...prev, endDate: e.target.value }))}
-                        />
+                        <Label>Durée</Label>
+                        <Select 
+                          value={recurrence.duration} 
+                          onValueChange={(value: DurationPeriod) => setRecurrence(prev => ({ ...prev, duration: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DURATION_OPTIONS.map(opt => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
+
+                      {recurrence.duration === 'custom' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="end-date">Date de fin</Label>
+                          <Input
+                            id="end-date"
+                            type="date"
+                            value={recurrence.customEndDate}
+                            min={formData.date}
+                            onChange={(e) => setRecurrence(prev => ({ ...prev, customEndDate: e.target.value }))}
+                          />
+                        </div>
+                      )}
 
                       <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
                         <strong>{previewCount}</strong> créneau{previewCount > 1 ? 'x' : ''} sera{previewCount > 1 ? 'ont' : ''} créé{previewCount > 1 ? 's' : ''}
