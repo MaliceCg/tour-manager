@@ -15,7 +15,7 @@ import { formatPrice } from '@/lib/formatters';
 import type { Activity, SlotWithActivity } from '@/types/database';
 import { fetchActivity } from '@/services/activities.service';
 import { fetchSlotsForDateRange } from '@/services/slots.service';
-import { createReservation } from '@/services/reservations.service';
+import { createWidgetReservation } from '@/services/widget.service';
 
 export default function WidgetPage() {
   const { activityId } = useParams<{ activityId: string }>();
@@ -120,23 +120,18 @@ export default function WidgetPage() {
     try {
       setError(null);
 
-      const organizationId = selectedSlot.organization_id || activity.organization_id;
-      if (!organizationId) {
-        throw new Error("Impossible de réserver: organization_id manquant sur l'activité / le créneau.");
-      }
-
-      // Widget reservations are pending (to be confirmed in backoffice)
-      await createReservation({
+      // Call the secure Postgres function for widget reservations
+      const result = await createWidgetReservation({
         slot_id: selectedSlot.id,
         customer_name: formData.customer_name,
         customer_email: formData.customer_email,
         people_count: formData.people_count,
-        amount_paid: 0,
-        payment_mode: 'on_site',
         pickup_point: formData.pickup_point || null,
-        status: 'pending',
-        organization_id: organizationId,
       });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors de la réservation');
+      }
 
       // Refresh slots after booking
       const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
