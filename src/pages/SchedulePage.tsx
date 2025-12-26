@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Trash2, ChevronLeft, Users } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { useActivities, useActivity } from '@/features/activities';
 import { useSlots, useCreateSlot, useUpdateSlot, useDeleteSlot } from '@/features/slots';
 import { useAuth } from '@/features/auth';
@@ -131,9 +132,9 @@ export default function SchedulePage() {
     }
   };
 
-  const formatDate = (date: string) => {
+  const formatDateDisplay = (date: string) => {
     try {
-      return format(parseISO(date), 'EEE, MMM d, yyyy');
+      return format(parseISO(date), 'EEEE d MMMM yyyy', { locale: fr });
     } catch {
       return date;
     }
@@ -142,25 +143,20 @@ export default function SchedulePage() {
   const formatTime = (time: string) => {
     try {
       const [hours, minutes] = time.split(':');
-      const date = new Date();
-      date.setHours(parseInt(hours), parseInt(minutes));
-      return format(date, 'h:mm a');
+      return `${hours}h${minutes}`;
     } catch {
       return time;
     }
   };
 
-  // Separate future and past slots
   const todayStr = new Date().toISOString().split('T')[0];
   
   const futureSlots = slots?.filter(slot => slot.date >= todayStr) || [];
   const pastSlots = slots?.filter(slot => slot.date < todayStr) || [];
   
-  // Sort future slots ascending (soonest first), past slots descending (most recent first)
   futureSlots.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
   pastSlots.sort((a, b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
 
-  // Group slots by date
   const groupSlotsByDate = (slotsToGroup: SlotWithActivity[]) => {
     return slotsToGroup.reduce((acc, slot) => {
       const date = slot.date;
@@ -182,20 +178,19 @@ export default function SchedulePage() {
           </Button>
         )}
         <div className="flex-1">
-          <h1 className="text-2xl font-semibold">Schedule</h1>
-          <p className="text-muted-foreground mt-1">Manage departures for your activities</p>
+          <h1 className="text-2xl font-semibold">Créneaux</h1>
+          <p className="text-muted-foreground mt-1">Gérez les départs de vos activités</p>
         </div>
       </div>
 
-      {/* Activity Selector */}
       <div className="mb-6">
-        <Label htmlFor="activity-select" className="mb-2 block">Select Activity</Label>
+        <Label htmlFor="activity-select" className="mb-2 block">Sélectionner une activité</Label>
         {loadingActivities ? (
           <Skeleton className="h-10 w-full max-w-sm" />
         ) : (
           <Select value={selectedActivityId} onValueChange={handleActivityChange}>
             <SelectTrigger className="max-w-sm">
-              <SelectValue placeholder="Choose an activity..." />
+              <SelectValue placeholder="Choisir une activité..." />
             </SelectTrigger>
             <SelectContent>
               {activities?.map((act) => (
@@ -208,11 +203,10 @@ export default function SchedulePage() {
         )}
       </div>
 
-      {/* Content */}
       {!selectedActivityId ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground">Select an activity to manage its departures</p>
+            <p className="text-muted-foreground">Sélectionnez une activité pour gérer ses créneaux</p>
           </CardContent>
         </Card>
       ) : loadingSlots ? (
@@ -225,37 +219,36 @@ export default function SchedulePage() {
         <>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-medium">
-              {activity?.name || 'Activity'} Departures
+              Créneaux de {activity?.name || 'l\'activité'}
             </h2>
             <Button onClick={handleOpenCreate}>
               <Plus className="h-4 w-4 mr-2" />
-              New Departure
+              Nouveau créneau
             </Button>
           </div>
 
           {!slots?.length ? (
             <Card className="border-dashed">
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <p className="text-muted-foreground mb-4">No departures scheduled yet</p>
+                <p className="text-muted-foreground mb-4">Aucun créneau planifié</p>
                 <Button onClick={handleOpenCreate}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create first departure
+                  Créer le premier créneau
                 </Button>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-8">
-              {/* Future Departures */}
               {futureSlots.length > 0 && (
                 <div>
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
-                    Upcoming Departures
+                    Créneaux à venir
                   </h3>
                   <div className="space-y-6">
                     {Object.entries(groupedFutureSlots).map(([date, dateSlots]) => (
                       <div key={date}>
                         <h4 className="text-sm font-medium text-muted-foreground mb-3">
-                          {formatDate(date)}
+                          {formatDateDisplay(date)}
                         </h4>
                         <div className="space-y-2">
                           {dateSlots?.map((slot) => (
@@ -268,12 +261,12 @@ export default function SchedulePage() {
                                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <Users className="h-4 w-4" />
                                     <span>
-                                      {slot.reserved_seats}/{slot.total_seats} booked
+                                      {slot.reserved_seats}/{slot.total_seats} réservés
                                     </span>
                                   </div>
                                   {slot.default_pickup_point && (
                                     <span className="text-sm text-muted-foreground">
-                                      Pickup: {slot.default_pickup_point}
+                                      RDV : {slot.default_pickup_point}
                                     </span>
                                   )}
                                 </div>
@@ -302,17 +295,16 @@ export default function SchedulePage() {
                 </div>
               )}
 
-              {/* Past Departures */}
               {pastSlots.length > 0 && (
                 <div>
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
-                    Past Departures
+                    Créneaux passés
                   </h3>
                   <div className="space-y-6 opacity-60">
                     {Object.entries(groupedPastSlots).map(([date, dateSlots]) => (
                       <div key={date}>
                         <h4 className="text-sm font-medium text-muted-foreground mb-3">
-                          {formatDate(date)}
+                          {formatDateDisplay(date)}
                         </h4>
                         <div className="space-y-2">
                           {dateSlots?.map((slot) => (
@@ -325,12 +317,12 @@ export default function SchedulePage() {
                                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <Users className="h-4 w-4" />
                                     <span>
-                                      {slot.reserved_seats}/{slot.total_seats} booked
+                                      {slot.reserved_seats}/{slot.total_seats} réservés
                                     </span>
                                   </div>
                                   {slot.default_pickup_point && (
                                     <span className="text-sm text-muted-foreground">
-                                      Pickup: {slot.default_pickup_point}
+                                      RDV : {slot.default_pickup_point}
                                     </span>
                                   )}
                                 </div>
@@ -363,14 +355,13 @@ export default function SchedulePage() {
         </>
       )}
 
-      {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <form onSubmit={handleSubmit}>
             <DialogHeader>
-              <DialogTitle>{editingSlot ? 'Edit Departure' : 'New Departure'}</DialogTitle>
+              <DialogTitle>{editingSlot ? 'Modifier le créneau' : 'Nouveau créneau'}</DialogTitle>
               <DialogDescription>
-                {editingSlot ? 'Update the departure details' : 'Schedule a new departure time'}
+                {editingSlot ? 'Mettre à jour les détails du créneau' : 'Planifier un nouveau créneau'}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -386,7 +377,7 @@ export default function SchedulePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="time">Time</Label>
+                  <Label htmlFor="time">Heure</Label>
                   <Input
                     id="time"
                     type="time"
@@ -397,7 +388,7 @@ export default function SchedulePage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="total_seats">Total Seats</Label>
+                <Label htmlFor="total_seats">Nombre de places</Label>
                 <Input
                   id="total_seats"
                   type="number"
@@ -408,40 +399,39 @@ export default function SchedulePage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pickup_point">Default Pickup Point (optional)</Label>
+                <Label htmlFor="pickup_point">Point de rendez-vous (optionnel)</Label>
                 <Input
                   id="pickup_point"
                   value={formData.default_pickup_point}
                   onChange={(e) => setFormData({ ...formData, default_pickup_point: e.target.value })}
-                  placeholder="e.g., Hotel Lobby, Beach Entrance"
+                  placeholder="ex. Hall de l'hôtel, Entrée de la plage"
                 />
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
+                Annuler
               </Button>
               <Button type="submit" disabled={createSlot.isPending || updateSlot.isPending}>
-                {editingSlot ? 'Save changes' : 'Create departure'}
+                {editingSlot ? 'Enregistrer' : 'Créer le créneau'}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete departure?</AlertDialogTitle>
+            <AlertDialogTitle>Supprimer le créneau ?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this departure and all associated reservations. This action cannot be undone.
+              Cette action supprimera définitivement ce créneau et toutes les réservations associées. Cette action est irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+              Supprimer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
