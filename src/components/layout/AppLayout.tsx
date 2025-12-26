@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { 
   Compass, 
   Calendar, 
@@ -8,6 +8,7 @@ import {
   ChevronRight,
   UserCircle,
   LogOut,
+  Settings,
   Building2,
   UsersRound
 } from 'lucide-react';
@@ -40,6 +41,7 @@ const adminNavigation = [
 export function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const { profile, organization, signOut, isAdmin } = useAuth();
+  const navigate = useNavigate();
 
   const allNavigation = isAdmin 
     ? [...navigation, ...adminNavigation] 
@@ -162,6 +164,10 @@ export function AppLayout() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/profile')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Paramètres
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={signOut} className="text-destructive">
                   <LogOut className="h-4 w-4 mr-2" />
                   Déconnexion

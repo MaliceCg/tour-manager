@@ -14,6 +14,7 @@ import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import SetupOrganizationPage from "./pages/SetupOrganizationPage";
 import TeamPage from "./pages/TeamPage";
+import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="calendar" element={<CalendarPage />} />
               <Route path="reservations" element={<ReservationsPage />} />
               <Route path="team" element={<TeamPage />} />
+              <Route path="profile" element={<ProfilePage />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
