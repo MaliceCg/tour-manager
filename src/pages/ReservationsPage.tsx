@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Search, Pencil, XCircle, Filter, X } from 'lucide-react';
-import { useReservations, useUpdateReservation, useCancelReservation } from '@/hooks/useReservations';
+import { Search, Pencil, XCircle, Filter, X, Plus } from 'lucide-react';
+import { useReservations, useCreateReservation, useUpdateReservation, useCancelReservation } from '@/hooks/useReservations';
 import { useActivities } from '@/hooks/useActivities';
+import { useSlots } from '@/hooks/useSlots';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -31,7 +32,7 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import type { Reservation, ReservationWithSlot, ReservationStatus, PaymentType } from '@/types/database';
+import type { Reservation, ReservationWithSlot, ReservationStatus, PaymentType, SlotWithActivity } from '@/types/database';
 
 interface ReservationFormData {
   customer_name: string;
@@ -43,6 +44,10 @@ interface ReservationFormData {
   status: ReservationStatus;
 }
 
+interface CreateReservationFormData extends ReservationFormData {
+  slot_id: string;
+}
+
 export default function ReservationsPage() {
   const [filters, setFilters] = useState<{
     date?: string;
@@ -52,12 +57,17 @@ export default function ReservationsPage() {
   
   const { data: reservations, isLoading } = useReservations(filters);
   const { data: activities } = useActivities();
+  const { data: slots } = useSlots();
+  const createReservation = useCreateReservation();
   const updateReservation = useUpdateReservation();
   const cancelReservation = useCancelReservation();
 
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<ReservationWithSlot | null>(null);
+  const [selectedActivityForCreate, setSelectedActivityForCreate] = useState<string>('');
+  
   const [formData, setFormData] = useState<ReservationFormData>({
     customer_name: '',
     customer_email: '',
@@ -67,7 +77,65 @@ export default function ReservationsPage() {
     pickup_point: '',
     status: 'confirmed',
   });
+  
+  const [createFormData, setCreateFormData] = useState<CreateReservationFormData>({
+    slot_id: '',
+    customer_name: '',
+    customer_email: '',
+    people_count: 1,
+    amount_paid: 0,
+    payment_mode: 'full',
+    pickup_point: '',
+    status: 'confirmed',
+  });
+  
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+
+  // Filter slots by selected activity and only show future slots with available seats
+  const availableSlots = slots?.filter((slot) => {
+    if (selectedActivityForCreate && slot.activity_id !== selectedActivityForCreate) return false;
+    const slotDate = parseISO(slot.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (slotDate < today) return false;
+    const availableSeats = slot.total_seats - slot.reserved_seats;
+    return availableSeats > 0;
+  }) || [];
+
+  const handleOpenCreate = () => {
+    setSelectedActivityForCreate('');
+    setCreateFormData({
+      slot_id: '',
+      customer_name: '',
+      customer_email: '',
+      people_count: 1,
+      amount_paid: 0,
+      payment_mode: 'full',
+      pickup_point: '',
+      status: 'confirmed',
+    });
+    setCreateDialogOpen(true);
+  };
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createFormData.slot_id) return;
+    
+    await createReservation.mutateAsync({
+      slot_id: createFormData.slot_id,
+      customer_name: createFormData.customer_name,
+      customer_email: createFormData.customer_email,
+      people_count: createFormData.people_count,
+      amount_paid: createFormData.amount_paid,
+      payment_mode: createFormData.payment_mode,
+      pickup_point: createFormData.pickup_point || null,
+      status: createFormData.status,
+    });
+    
+    setCreateDialogOpen(false);
+  };
+
+  const selectedSlot = slots?.find(s => s.id === createFormData.slot_id) as SlotWithActivity | undefined;
 
   const handleOpenEdit = (reservation: ReservationWithSlot) => {
     setSelectedReservation(reservation);
@@ -149,6 +217,10 @@ export default function ReservationsPage() {
           <h1 className="text-2xl font-semibold">Reservations</h1>
           <p className="text-muted-foreground mt-1">Manage all customer bookings</p>
         </div>
+        <Button onClick={handleOpenCreate}>
+          <Plus className="h-4 w-4 mr-2" />
+          New Reservation
+        </Button>
       </div>
 
       {/* Filters */}
@@ -276,6 +348,165 @@ export default function ReservationsPage() {
           ))}
         </div>
       )}
+
+      {/* Create Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <form onSubmit={handleCreateSubmit}>
+            <DialogHeader>
+              <DialogTitle>New Reservation</DialogTitle>
+              <DialogDescription>
+                Create a reservation for a departure
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Activity</Label>
+                <Select
+                  value={selectedActivityForCreate}
+                  onValueChange={(v) => {
+                    setSelectedActivityForCreate(v);
+                    setCreateFormData({ ...createFormData, slot_id: '' });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select activity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activities?.map((activity) => (
+                      <SelectItem key={activity.id} value={activity.id}>
+                        {activity.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Departure</Label>
+                <Select
+                  value={createFormData.slot_id}
+                  onValueChange={(v) => {
+                    const slot = availableSlots.find(s => s.id === v);
+                    setCreateFormData({ 
+                      ...createFormData, 
+                      slot_id: v,
+                      pickup_point: slot?.default_pickup_point || ''
+                    });
+                  }}
+                  disabled={!selectedActivityForCreate}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={selectedActivityForCreate ? "Select departure" : "Select activity first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableSlots.map((slot) => (
+                      <SelectItem key={slot.id} value={slot.id}>
+                        {formatDate(slot.date)} at {formatTime(slot.time)} ({slot.total_seats - slot.reserved_seats} seats left)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="create_customer_name">Customer Name</Label>
+                <Input
+                  id="create_customer_name"
+                  value={createFormData.customer_name}
+                  onChange={(e) => setCreateFormData({ ...createFormData, customer_name: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create_customer_email">Email</Label>
+                <Input
+                  id="create_customer_email"
+                  type="email"
+                  value={createFormData.customer_email}
+                  onChange={(e) => setCreateFormData({ ...createFormData, customer_email: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="create_people_count">People</Label>
+                  <Input
+                    id="create_people_count"
+                    type="number"
+                    min={1}
+                    value={createFormData.people_count}
+                    onChange={(e) => setCreateFormData({ ...createFormData, people_count: parseInt(e.target.value) || 1 })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="create_amount_paid">Amount Paid</Label>
+                  <Input
+                    id="create_amount_paid"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={createFormData.amount_paid}
+                    onChange={(e) => setCreateFormData({ ...createFormData, amount_paid: parseFloat(e.target.value) || 0 })}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create_pickup_point">Pickup Point</Label>
+                <Input
+                  id="create_pickup_point"
+                  value={createFormData.pickup_point}
+                  onChange={(e) => setCreateFormData({ ...createFormData, pickup_point: e.target.value })}
+                  placeholder="e.g., Hotel Lobby"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Payment Mode</Label>
+                  <Select
+                    value={createFormData.payment_mode}
+                    onValueChange={(value: PaymentType) => setCreateFormData({ ...createFormData, payment_mode: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full">Full payment</SelectItem>
+                      <SelectItem value="deposit">Deposit</SelectItem>
+                      <SelectItem value="on_site">Pay on site</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select
+                    value={createFormData.status}
+                    onValueChange={(value: ReservationStatus) => setCreateFormData({ ...createFormData, status: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="confirmed">Confirmed</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createReservation.isPending || !createFormData.slot_id}>
+                Create Reservation
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
