@@ -43,9 +43,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select('role')
         .eq('user_id', userId);
 
-      setRoles((rolesData || []).map(r => r.role as AppRole));
-    } catch (error) {
-      console.error('Error fetching user data:', error);
+      setRoles((rolesData || []).map((r) => r.role as AppRole));
+    } catch {
+      // Intentionally swallow here: missing SELECT policies can temporarily return empty
+      // and we don't want to crash the app.
+      setProfile(null);
+      setOrganization(null);
+      setRoles([]);
     }
   }, []);
 
@@ -118,17 +122,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return { error: new Error('Not authenticated') };
 
     try {
-      // Generate org ID client-side to avoid needing SELECT after INSERT
       const orgId = crypto.randomUUID();
 
-      // Create organization (no .select() to avoid SELECT policy issue)
+      // Create organization (avoid SELECT-after-INSERT so RLS doesn't block)
       const { error: orgError } = await supabase
         .from('organizations')
         .insert({ id: orgId, name });
 
       if (orgError) throw orgError;
 
-      // Update profile with organization_id
+      // Link profile to org
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ organization_id: orgId })
@@ -143,9 +146,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (roleError) throw roleError;
 
-      // Refresh user data
       await fetchUserData(user.id);
+      return { error: null };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
 
+  const joinOrganization = async (organizationId: string) => {
+    if (!user) return { error: new Error('Not authenticated') };
+
+    try {
+      const orgId = organizationId.trim();
+      if (!orgId) return { error: new Error('Organization ID is required') };
+
+      // Link profile to org (we don't SELECT the org here; after linking, SELECT will be allowed)
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ organization_id: orgId })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      // Default role for joiners
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({ user_id: user.id, role: 'staff' });
+
+      // Ignore unique violation if role already exists
+      const roleCode = (roleError as any)?.code?.toString?.();
+      if (roleError && roleCode !== '23505') {
+        throw roleError;
+      }
+
+      await fetchUserData(user.id);
       return { error: null };
     } catch (error) {
       return { error: error as Error };
@@ -168,9 +202,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signOut,
     createOrganization,
+    joinOrganization,
     hasRole,
     isAdmin,
-    refreshProfile
+    refreshProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

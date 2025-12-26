@@ -39,6 +39,7 @@ export interface AuthContextValue extends AuthState {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   createOrganization: (name: string) => Promise<{ error: Error | null }>;
+  joinOrganization: (organizationId: string) => Promise<{ error: Error | null }>;
   hasRole: (role: AppRole) => boolean;
   isAdmin: boolean;
   refreshProfile: () => Promise<void>;

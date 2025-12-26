@@ -9,8 +9,9 @@ import { toast } from 'sonner';
 import { Building2 } from 'lucide-react';
 
 export default function SetupOrganizationPage() {
-  const { isAuthenticated, isLoading, hasOrganization, createOrganization, signOut } = useAuth();
+  const { isAuthenticated, isLoading, hasOrganization, createOrganization, joinOrganization, signOut } = useAuth();
   const [orgName, setOrgName] = useState('');
+  const [orgId, setOrgId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (isLoading) {
@@ -29,7 +30,7 @@ export default function SetupOrganizationPage() {
     return <Navigate to="/" replace />;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!orgName.trim()) {
@@ -48,6 +49,25 @@ export default function SetupOrganizationPage() {
     }
   };
 
+  const handleJoin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!orgId.trim()) {
+      toast.error('Please enter an organization ID');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const { error } = await joinOrganization(orgId.trim());
+    setIsSubmitting(false);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Joined organization!');
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
@@ -55,39 +75,63 @@ export default function SetupOrganizationPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <Building2 className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Create your organization</CardTitle>
+          <CardTitle className="text-2xl">Set up your organization</CardTitle>
           <CardDescription>
-            Set up your organization to start managing activities
+            Create a new organization or join an existing one to start managing activities
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="orgName">Organization Name</Label>
-              <Input
-                id="orgName"
-                type="text"
-                placeholder="My Tour Company"
-                value={orgName}
-                onChange={(e) => setOrgName(e.target.value)}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create Organization'}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onClick={signOut}
-            >
-              Sign out
-            </Button>
-          </CardFooter>
-        </form>
+
+        <div className="space-y-6">
+          <form onSubmit={handleCreate}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="orgName">Organization Name</Label>
+                <Input
+                  id="orgName"
+                  type="text"
+                  placeholder="My Tour Company"
+                  value={orgName}
+                  onChange={(e) => setOrgName(e.target.value)}
+                  required
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Creating...' : 'Create Organization'}
+              </Button>
+            </CardFooter>
+          </form>
+
+          <div className="px-6">
+            <div className="h-px w-full bg-border" />
+          </div>
+
+          <form onSubmit={handleJoin}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="orgId">Organization ID</Label>
+                <Input
+                  id="orgId"
+                  type="text"
+                  placeholder="e.g. 7b3f0c2e-..."
+                  value={orgId}
+                  onChange={(e) => setOrgId(e.target.value)}
+                  required
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+              <Button type="submit" variant="secondary" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Joining...' : 'Join Organization'}
+              </Button>
+
+              <Button type="button" variant="ghost" className="w-full" onClick={signOut}>
+                Sign out
+              </Button>
+            </CardFooter>
+          </form>
+        </div>
       </Card>
     </div>
   );
