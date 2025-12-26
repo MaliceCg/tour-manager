@@ -24,10 +24,10 @@ export function useCreateActivity() {
     mutationFn: activitiesService.createActivity,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities'] });
-      toast({ title: 'Activity created successfully' });
+      toast({ title: 'Activité créée avec succès' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Failed to create activity', description: error.message, variant: 'destructive' });
+      toast({ title: 'Échec de la création', description: error.message, variant: 'destructive' });
     },
   });
 }
@@ -39,10 +39,10 @@ export function useUpdateActivity() {
     mutationFn: activitiesService.updateActivity,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities'] });
-      toast({ title: 'Activity updated successfully' });
+      toast({ title: 'Activité mise à jour' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Failed to update activity', description: error.message, variant: 'destructive' });
+      toast({ title: 'Échec de la mise à jour', description: error.message, variant: 'destructive' });
     },
   });
 }
@@ -54,10 +54,10 @@ export function useDeleteActivity() {
     mutationFn: activitiesService.deleteActivity,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities'] });
-      toast({ title: 'Activity deleted successfully' });
+      toast({ title: 'Activité supprimée' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Failed to delete activity', description: error.message, variant: 'destructive' });
+      toast({ title: 'Échec de la suppression', description: error.message, variant: 'destructive' });
     },
   });
 }

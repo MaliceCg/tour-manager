@@ -37,7 +37,7 @@ export function ReservationsList({
         <CardContent className="flex flex-col items-center justify-center py-12">
           <Search className="h-10 w-10 text-muted-foreground mb-4" />
           <p className="text-muted-foreground">
-            {hasFilters ? 'No reservations match your filters' : 'No reservations yet'}
+            {hasFilters ? 'Aucune réservation ne correspond à vos filtres' : 'Aucune réservation pour le moment'}
           </p>
         </CardContent>
       </Card>
@@ -49,7 +49,7 @@ export function ReservationsList({
       {/* Upcoming Reservations */}
       {upcomingReservations.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-foreground">Upcoming Reservations</h2>
+          <h2 className="text-lg font-semibold text-foreground">Réservations à venir</h2>
           {upcomingReservations.map((reservation) => (
             <ReservationCard
               key={reservation.id}
@@ -64,7 +64,7 @@ export function ReservationsList({
       {/* Past Reservations */}
       {pastReservations.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-muted-foreground">Past Reservations</h2>
+          <h2 className="text-lg font-semibold text-muted-foreground">Réservations passées</h2>
           {pastReservations.map((reservation) => (
             <ReservationCard
               key={reservation.id}

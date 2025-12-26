@@ -26,10 +26,10 @@ export function useCreateReservation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] });
       queryClient.invalidateQueries({ queryKey: ['slots'] });
-      toast({ title: 'Reservation created successfully' });
+      toast({ title: 'Réservation créée avec succès' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Failed to create reservation', description: error.message, variant: 'destructive' });
+      toast({ title: 'Échec de la création', description: error.message, variant: 'destructive' });
     },
   });
 }
@@ -42,10 +42,10 @@ export function useUpdateReservation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] });
       queryClient.invalidateQueries({ queryKey: ['slots'] });
-      toast({ title: 'Reservation updated successfully' });
+      toast({ title: 'Réservation mise à jour' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Failed to update reservation', description: error.message, variant: 'destructive' });
+      toast({ title: 'Échec de la mise à jour', description: error.message, variant: 'destructive' });
     },
   });
 }
@@ -58,10 +58,10 @@ export function useCancelReservation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] });
       queryClient.invalidateQueries({ queryKey: ['slots'] });
-      toast({ title: 'Reservation cancelled successfully' });
+      toast({ title: 'Réservation annulée' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Failed to cancel reservation', description: error.message, variant: 'destructive' });
+      toast({ title: "Échec de l'annulation", description: error.message, variant: 'destructive' });
     },
   });
 }

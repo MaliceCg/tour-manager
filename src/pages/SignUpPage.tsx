@@ -9,12 +9,12 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 const signUpSchema = z.object({
-  fullName: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  fullName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
+  email: z.string().email('Veuillez entrer un email valide'),
+  password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
   confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: "Les mots de passe ne correspondent pas",
   path: ['confirmPassword']
 });
 
@@ -53,12 +53,12 @@ export default function SignUpPage() {
 
     if (error) {
       if (error.message.includes('already registered')) {
-        toast.error('An account with this email already exists');
+        toast.error('Un compte avec cet email existe déjà');
       } else {
         toast.error(error.message);
       }
     } else {
-      toast.success('Account created! Please set up your organization.');
+      toast.success('Compte créé ! Configurez maintenant votre organisation.');
     }
   };
 
@@ -66,17 +66,17 @@ export default function SignUpPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>Get started with your organization</CardDescription>
+          <CardTitle className="text-2xl">Créer un compte</CardTitle>
+          <CardDescription>Commencez avec votre organisation</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
+              <Label htmlFor="fullName">Nom complet</Label>
               <Input
                 id="fullName"
                 type="text"
-                placeholder="John Doe"
+                placeholder="Jean Dupont"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 autoComplete="name"
@@ -88,7 +88,7 @@ export default function SignUpPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="vous@exemple.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -96,7 +96,7 @@ export default function SignUpPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mot de passe</Label>
               <Input
                 id="password"
                 type="password"
@@ -108,7 +108,7 @@ export default function SignUpPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -122,12 +122,12 @@ export default function SignUpPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Creating account...' : 'Sign up'}
+              {isSubmitting ? 'Création du compte...' : "S'inscrire"}
             </Button>
             <p className="text-sm text-muted-foreground">
-              Already have an account?{' '}
+              Déjà un compte ?{' '}
               <Link to="/login" className="text-primary underline-offset-4 hover:underline">
-                Sign in
+                Se connecter
               </Link>
             </p>
           </CardFooter>

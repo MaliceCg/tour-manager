@@ -32,7 +32,7 @@ export default function LoginPage() {
     e.preventDefault();
     
     if (!email || !password) {
-      toast.error('Please fill in all fields');
+      toast.error('Veuillez remplir tous les champs');
       return;
     }
 
@@ -42,7 +42,7 @@ export default function LoginPage() {
 
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
-        toast.error('Invalid email or password');
+        toast.error('Email ou mot de passe incorrect');
       } else {
         toast.error(error.message);
       }
@@ -53,8 +53,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <CardTitle className="text-2xl">Bon retour !</CardTitle>
+          <CardDescription>Connectez-vous à votre compte</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -63,7 +63,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="vous@exemple.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -71,7 +71,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mot de passe</Label>
               <Input
                 id="password"
                 type="password"
@@ -85,12 +85,12 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Signing in...' : 'Sign in'}
+              {isSubmitting ? 'Connexion...' : 'Se connecter'}
             </Button>
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{' '}
+              Pas encore de compte ?{' '}
               <Link to="/signup" className="text-primary underline-offset-4 hover:underline">
-                Sign up
+                Créer un compte
               </Link>
             </p>
           </CardFooter>

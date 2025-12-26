@@ -27,19 +27,18 @@ export function CancelReservationDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Cancel reservation?</AlertDialogTitle>
+          <AlertDialogTitle>Annuler la réservation ?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will cancel the reservation for {reservation?.customer_name}. The seat will be released
-            and made available again.
+            Cette action annulera la réservation de {reservation?.customer_name}. La place sera libérée et rendue disponible.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Keep reservation</AlertDialogCancel>
+          <AlertDialogCancel>Conserver la réservation</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            Cancel reservation
+            Annuler la réservation
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

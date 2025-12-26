@@ -35,12 +35,12 @@ export function EditReservationDialog({
       <DialogContent className="sm:max-w-md">
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>Edit Reservation</DialogTitle>
-            <DialogDescription>Update the reservation details</DialogDescription>
+            <DialogTitle>Modifier la réservation</DialogTitle>
+            <DialogDescription>Mettre à jour les détails de la réservation</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="customer_name">Customer Name</Label>
+              <Label htmlFor="customer_name">Nom du client</Label>
               <Input
                 id="customer_name"
                 value={formData.customer_name}
@@ -60,7 +60,7 @@ export function EditReservationDialog({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="people_count">People</Label>
+                <Label htmlFor="people_count">Personnes</Label>
                 <Input
                   id="people_count"
                   type="number"
@@ -73,7 +73,7 @@ export function EditReservationDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="amount_paid">Amount Paid</Label>
+                <Label htmlFor="amount_paid">Montant payé</Label>
                 <Input
                   id="amount_paid"
                   type="number"
@@ -88,17 +88,17 @@ export function EditReservationDialog({
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="pickup_point">Pickup Point</Label>
+              <Label htmlFor="pickup_point">Point de rendez-vous</Label>
               <Input
                 id="pickup_point"
                 value={formData.pickup_point}
                 onChange={(e) => onFormDataChange({ ...formData, pickup_point: e.target.value })}
-                placeholder="e.g., Hotel Lobby"
+                placeholder="ex. Hall de l'hôtel"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="payment_mode">Payment Mode</Label>
+                <Label htmlFor="payment_mode">Mode de paiement</Label>
                 <Select
                   value={formData.payment_mode}
                   onValueChange={(value: PaymentType) =>
@@ -109,14 +109,14 @@ export function EditReservationDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="full">Full payment</SelectItem>
-                    <SelectItem value="deposit">Deposit</SelectItem>
-                    <SelectItem value="on_site">Pay on site</SelectItem>
+                    <SelectItem value="full">Paiement complet</SelectItem>
+                    <SelectItem value="deposit">Acompte</SelectItem>
+                    <SelectItem value="on_site">Sur place</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status">Statut</Label>
                 <Select
                   value={formData.status}
                   onValueChange={(value: ReservationStatus) =>
@@ -127,9 +127,9 @@ export function EditReservationDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="confirmed">Confirmed</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="confirmed">Confirmée</SelectItem>
+                    <SelectItem value="pending">En attente</SelectItem>
+                    <SelectItem value="cancelled">Annulée</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -137,10 +137,10 @@ export function EditReservationDialog({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Annuler
             </Button>
             <Button type="submit" disabled={isPending}>
-              Save changes
+              Enregistrer
             </Button>
           </DialogFooter>
         </form>

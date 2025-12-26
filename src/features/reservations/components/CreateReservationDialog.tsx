@@ -44,12 +44,12 @@ export function CreateReservationDialog({
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>New Reservation</DialogTitle>
-            <DialogDescription>Create a reservation for a departure</DialogDescription>
+            <DialogTitle>Nouvelle réservation</DialogTitle>
+            <DialogDescription>Créer une réservation pour un départ</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Activity</Label>
+              <Label>Activité</Label>
               <Select
                 value={selectedActivityForCreate}
                 onValueChange={(v) => {
@@ -58,7 +58,7 @@ export function CreateReservationDialog({
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select activity" />
+                  <SelectValue placeholder="Sélectionner une activité" />
                 </SelectTrigger>
                 <SelectContent>
                   {activities?.map((activity) => (
@@ -71,7 +71,7 @@ export function CreateReservationDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>Departure</Label>
+              <Label>Créneau</Label>
               <Select
                 value={formData.slot_id}
                 onValueChange={(v) => {
@@ -86,14 +86,14 @@ export function CreateReservationDialog({
               >
                 <SelectTrigger>
                   <SelectValue
-                    placeholder={selectedActivityForCreate ? 'Select departure' : 'Select activity first'}
+                    placeholder={selectedActivityForCreate ? 'Sélectionner un créneau' : "Sélectionnez d'abord une activité"}
                   />
                 </SelectTrigger>
                 <SelectContent>
                   {availableSlots.map((slot) => (
                     <SelectItem key={slot.id} value={slot.id}>
-                      {formatDate(slot.date)} at {formatTime(slot.time)} ({slot.total_seats - slot.reserved_seats}{' '}
-                      seats left)
+                      {formatDate(slot.date)} à {formatTime(slot.time)} ({slot.total_seats - slot.reserved_seats}{' '}
+                      places restantes)
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -101,7 +101,7 @@ export function CreateReservationDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="create_customer_name">Customer Name</Label>
+              <Label htmlFor="create_customer_name">Nom du client</Label>
               <Input
                 id="create_customer_name"
                 value={formData.customer_name}
@@ -121,7 +121,7 @@ export function CreateReservationDialog({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="create_people_count">People</Label>
+                <Label htmlFor="create_people_count">Personnes</Label>
                 <Input
                   id="create_people_count"
                   type="number"
@@ -134,7 +134,7 @@ export function CreateReservationDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="create_amount_paid">Amount Paid</Label>
+                <Label htmlFor="create_amount_paid">Montant payé</Label>
                 <Input
                   id="create_amount_paid"
                   type="number"
@@ -149,17 +149,17 @@ export function CreateReservationDialog({
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="create_pickup_point">Pickup Point</Label>
+              <Label htmlFor="create_pickup_point">Point de rendez-vous</Label>
               <Input
                 id="create_pickup_point"
                 value={formData.pickup_point}
                 onChange={(e) => onFormDataChange({ ...formData, pickup_point: e.target.value })}
-                placeholder="e.g., Hotel Lobby"
+                placeholder="ex. Hall de l'hôtel"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Payment Mode</Label>
+                <Label>Mode de paiement</Label>
                 <Select
                   value={formData.payment_mode}
                   onValueChange={(value: PaymentType) =>
@@ -170,14 +170,14 @@ export function CreateReservationDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="full">Full payment</SelectItem>
-                    <SelectItem value="deposit">Deposit</SelectItem>
-                    <SelectItem value="on_site">Pay on site</SelectItem>
+                    <SelectItem value="full">Paiement complet</SelectItem>
+                    <SelectItem value="deposit">Acompte</SelectItem>
+                    <SelectItem value="on_site">Sur place</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Status</Label>
+                <Label>Statut</Label>
                 <Select
                   value={formData.status}
                   onValueChange={(value: ReservationStatus) =>
@@ -188,8 +188,8 @@ export function CreateReservationDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="confirmed">Confirmed</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="confirmed">Confirmée</SelectItem>
+                    <SelectItem value="pending">En attente</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -197,10 +197,10 @@ export function CreateReservationDialog({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Annuler
             </Button>
             <Button type="submit" disabled={isPending || !formData.slot_id}>
-              Create Reservation
+              Créer la réservation
             </Button>
           </DialogFooter>
         </form>

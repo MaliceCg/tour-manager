@@ -19,9 +19,9 @@ interface ActivityCardProps {
 
 function formatPaymentType(type: PaymentType) {
   const labels: Record<PaymentType, string> = {
-    deposit: 'Deposit required',
-    full: 'Full payment',
-    on_site: 'Pay on site',
+    deposit: 'Acompte requis',
+    full: 'Paiement complet',
+    on_site: 'Paiement sur place',
   };
   return labels[type];
 }
@@ -33,7 +33,7 @@ export function ActivityCard({ activity, onEdit, onDelete, onManageSchedule }: A
         <div className="space-y-1">
           <CardTitle className="text-base">{activity.name}</CardTitle>
           <CardDescription className="line-clamp-2">
-            {activity.description || 'No description'}
+            {activity.description || 'Aucune description'}
           </CardDescription>
         </div>
         <DropdownMenu>
@@ -49,18 +49,18 @@ export function ActivityCard({ activity, onEdit, onDelete, onManageSchedule }: A
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onEdit(activity)}>
               <Pencil className="h-4 w-4 mr-2" />
-              Edit
+              Modifier
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onManageSchedule(activity.id)}>
               <Clock className="h-4 w-4 mr-2" />
-              Manage schedule
+              Gérer les créneaux
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onDelete(activity)}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete
+              Supprimer
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -68,7 +68,7 @@ export function ActivityCard({ activity, onEdit, onDelete, onManageSchedule }: A
       <CardContent>
         <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-secondary">
-            {activity.capacity} seats
+            {activity.capacity} places
           </span>
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-secondary">
             {formatPrice(activity.price)}

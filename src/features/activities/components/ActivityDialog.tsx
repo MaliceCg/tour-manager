@@ -38,19 +38,19 @@ export function ActivityDialog({
       <DialogContent className="sm:max-w-md">
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>{editingActivity ? 'Edit Activity' : 'New Activity'}</DialogTitle>
+            <DialogTitle>{editingActivity ? 'Modifier l\'activité' : 'Nouvelle activité'}</DialogTitle>
             <DialogDescription>
-              {editingActivity ? 'Update the activity details' : 'Create a new tour or experience'}
+              {editingActivity ? 'Mettez à jour les détails de l\'activité' : 'Créez un nouveau tour ou expérience'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">Nom</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => onFormDataChange({ ...formData, name: e.target.value })}
-                placeholder="e.g., Sunset Kayak Tour"
+                placeholder="ex. Tour en kayak au coucher du soleil"
                 required
               />
             </div>
@@ -60,13 +60,13 @@ export function ActivityDialog({
                 id="description"
                 value={formData.description}
                 onChange={(e) => onFormDataChange({ ...formData, description: e.target.value })}
-                placeholder="Describe the activity..."
+                placeholder="Décrivez l'activité..."
                 rows={3}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="capacity">Capacity</Label>
+                <Label htmlFor="capacity">Capacité</Label>
                 <Input
                   id="capacity"
                   type="number"
@@ -79,7 +79,7 @@ export function ActivityDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price">Price</Label>
+                <Label htmlFor="price">Prix</Label>
                 <Input
                   id="price"
                   type="number"
@@ -94,7 +94,7 @@ export function ActivityDialog({
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="payment_type">Payment Type</Label>
+              <Label htmlFor="payment_type">Type de paiement</Label>
               <Select
                 value={formData.payment_type}
                 onValueChange={(value: PaymentType) =>
@@ -105,19 +105,19 @@ export function ActivityDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="full">Full payment required</SelectItem>
-                  <SelectItem value="deposit">Deposit required</SelectItem>
-                  <SelectItem value="on_site">Pay on site</SelectItem>
+                  <SelectItem value="full">Paiement complet requis</SelectItem>
+                  <SelectItem value="deposit">Acompte requis</SelectItem>
+                  <SelectItem value="on_site">Paiement sur place</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Annuler
             </Button>
             <Button type="submit" disabled={isPending}>
-              {editingActivity ? 'Save changes' : 'Create activity'}
+              {editingActivity ? 'Enregistrer' : 'Créer l\'activité'}
             </Button>
           </DialogFooter>
         </form>
