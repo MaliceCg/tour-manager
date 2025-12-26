@@ -44,7 +44,7 @@ export function formatPrice(price: number): string {
     maximumFractionDigits: 0,
   }).format(xpfPrice);
   
-  return `${eurFormatted} (${xpfFormatted})`;
+  return `${xpfFormatted} (${eurFormatted})`;
 }
 
 export function formatPriceXPF(price: number): string {

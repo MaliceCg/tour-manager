@@ -2,7 +2,7 @@ import { Pencil, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { formatDate, formatTime } from '@/lib/formatters';
+import { formatDate, formatTime, formatPrice } from '@/lib/formatters';
 import type { ReservationWithSlot, ReservationStatus } from '@/types/database';
 
 interface ReservationCardProps {
@@ -49,7 +49,7 @@ export function ReservationCard({ reservation, onEdit, onCancel, isPast = false 
           <div className="text-sm">
             {reservation.people_count} {reservation.people_count === 1 ? 'personne' : 'personnes'}
           </div>
-          <div className="text-sm">{reservation.amount_paid.toFixed(2)} €</div>
+          <div className="text-sm">{formatPrice(reservation.amount_paid)}</div>
           {getStatusBadge(reservation.status)}
         </div>
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

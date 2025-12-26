@@ -8,6 +8,7 @@ import { fetchSlots } from '@/services/slots.service';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, startOfToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { formatPrice } from '@/lib/formatters';
 
 interface KpiCardProps {
   title: string;
@@ -109,7 +110,7 @@ export default function DashboardPage() {
         />
         <KpiCard
           title="Chiffre d'affaires"
-          value={`${totalRevenue.toLocaleString('fr-FR')} €`}
+          value={formatPrice(totalRevenue)}
           description="Réservations confirmées"
           icon={<TrendingUp className="h-4 w-4" />}
           isLoading={loadingReservations}
@@ -137,7 +138,7 @@ export default function DashboardPage() {
                   <li key={activity.id} className="flex items-center justify-between text-sm">
                     <span className="font-medium">{activity.name}</span>
                     <span className="text-muted-foreground">
-                      {activity.capacity} places · {activity.price} €
+                      {activity.capacity} places · {formatPrice(activity.price)}
                     </span>
                   </li>
                 ))}
