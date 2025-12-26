@@ -31,10 +31,10 @@ export function useCreateSlot() {
     mutationFn: slotsService.createSlot,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['slots'] });
-      toast({ title: 'Departure created successfully' });
+      toast({ title: 'Créneau créé avec succès' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Failed to create departure', description: error.message, variant: 'destructive' });
+      toast({ title: 'Échec de la création du créneau', description: error.message, variant: 'destructive' });
     },
   });
 }
@@ -45,10 +45,10 @@ export function useUpdateSlot() {
     mutationFn: slotsService.updateSlot,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['slots'] });
-      toast({ title: 'Departure updated successfully' });
+      toast({ title: 'Créneau mis à jour' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Failed to update departure', description: error.message, variant: 'destructive' });
+      toast({ title: 'Échec de la mise à jour du créneau', description: error.message, variant: 'destructive' });
     },
   });
 }
@@ -59,10 +59,10 @@ export function useDeleteSlot() {
     mutationFn: slotsService.deleteSlot,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['slots'] });
-      toast({ title: 'Departure deleted successfully' });
+      toast({ title: 'Créneau supprimé' });
     },
     onError: (error: Error) => {
-      toast({ title: 'Failed to delete departure', description: error.message, variant: 'destructive' });
+      toast({ title: 'Échec de la suppression du créneau', description: error.message, variant: 'destructive' });
     },
   });
 }

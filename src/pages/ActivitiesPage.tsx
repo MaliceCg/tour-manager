@@ -47,12 +47,12 @@ export default function ActivitiesPage() {
     <div className="p-6 lg:p-8 animate-fade-in">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold">Activities</h1>
-          <p className="text-muted-foreground mt-1">Manage your tours and experiences</p>
+          <h1 className="text-2xl font-semibold">Activités</h1>
+          <p className="text-muted-foreground mt-1">Gérez vos tours et expériences</p>
         </div>
         <Button onClick={ui.openCreateDialog}>
           <Plus className="h-4 w-4 mr-2" />
-          New Activity
+          Nouvelle activité
         </Button>
       </div>
 

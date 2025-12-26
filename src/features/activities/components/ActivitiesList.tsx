@@ -42,10 +42,10 @@ export function ActivitiesList({
     return (
       <Card className="border-dashed">
         <CardContent className="flex flex-col items-center justify-center py-12">
-          <p className="text-muted-foreground mb-4">No activities yet</p>
+          <p className="text-muted-foreground mb-4">Aucune activité pour le moment</p>
           <Button onClick={onCreateNew}>
             <Plus className="h-4 w-4 mr-2" />
-            Create your first activity
+            Créer votre première activité
           </Button>
         </CardContent>
       </Card>

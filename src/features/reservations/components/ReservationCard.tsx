@@ -18,9 +18,14 @@ function getStatusBadge(status: ReservationStatus) {
     pending: 'secondary',
     cancelled: 'destructive',
   };
+  const labels: Record<ReservationStatus, string> = {
+    confirmed: 'Confirmée',
+    pending: 'En attente',
+    cancelled: 'Annulée',
+  };
   return (
-    <Badge variant={variants[status]} className="capitalize">
-      {status}
+    <Badge variant={variants[status]}>
+      {labels[status]}
     </Badge>
   );
 }
@@ -37,14 +42,14 @@ export function ReservationCard({ reservation, onEdit, onCancel, isPast = false 
           <div className="min-w-[150px]">
             <div className="text-sm font-medium">{reservation.slot?.activity?.name}</div>
             <div className="text-sm text-muted-foreground">
-              {reservation.slot?.date && formatDate(reservation.slot.date)} at{' '}
+              {reservation.slot?.date && formatDate(reservation.slot.date)} à{' '}
               {reservation.slot?.time && formatTime(reservation.slot.time)}
             </div>
           </div>
           <div className="text-sm">
-            {reservation.people_count} {reservation.people_count === 1 ? 'person' : 'people'}
+            {reservation.people_count} {reservation.people_count === 1 ? 'personne' : 'personnes'}
           </div>
-          <div className="text-sm">${reservation.amount_paid.toFixed(2)}</div>
+          <div className="text-sm">{reservation.amount_paid.toFixed(2)} €</div>
           {getStatusBadge(reservation.status)}
         </div>
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -26,15 +26,15 @@ import {
 import { useAuth } from '@/features/auth';
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Building2 },
-  { name: 'Activities', href: '/activities', icon: Compass },
-  { name: 'Schedule', href: '/schedule', icon: Clock },
-  { name: 'Calendar', href: '/calendar', icon: Calendar },
-  { name: 'Reservations', href: '/reservations', icon: Users },
+  { name: 'Tableau de bord', href: '/dashboard', icon: Building2 },
+  { name: 'Activités', href: '/activities', icon: Compass },
+  { name: 'Créneaux', href: '/schedule', icon: Clock },
+  { name: 'Calendrier', href: '/calendar', icon: Calendar },
+  { name: 'Réservations', href: '/reservations', icon: Users },
 ];
 
 const adminNavigation = [
-  { name: 'Team', href: '/team', icon: UsersRound },
+  { name: 'Équipe', href: '/team', icon: UsersRound },
 ];
 
 export function AppLayout() {
@@ -147,7 +147,7 @@ export function AppLayout() {
                   <UserCircle className="h-5 w-5" />
                   {!collapsed && (
                     <span className="ml-2 truncate text-sm">
-                      {profile?.full_name || profile?.email || 'User'}
+                      {profile?.full_name || profile?.email || 'Utilisateur'}
                     </span>
                   )}
                 </Button>
@@ -155,7 +155,7 @@ export function AppLayout() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
-                    <span>{profile?.full_name || 'User'}</span>
+                    <span>{profile?.full_name || 'Utilisateur'}</span>
                     <span className="text-xs font-normal text-muted-foreground">
                       {profile?.email}
                     </span>
@@ -164,7 +164,7 @@ export function AppLayout() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut} className="text-destructive">
                   <LogOut className="h-4 w-4 mr-2" />
-                  Sign out
+                  Déconnexion
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

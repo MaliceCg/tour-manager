@@ -34,7 +34,7 @@ export default function SetupOrganizationPage() {
     e.preventDefault();
 
     if (!orgName.trim()) {
-      toast.error('Please enter an organization name');
+      toast.error("Veuillez entrer un nom d'organisation");
       return;
     }
 
@@ -45,7 +45,7 @@ export default function SetupOrganizationPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Organization created! Welcome aboard.');
+      toast.success('Organisation créée ! Bienvenue.');
     }
   };
 
@@ -53,7 +53,7 @@ export default function SetupOrganizationPage() {
     e.preventDefault();
 
     if (!orgId.trim()) {
-      toast.error('Please enter an organization ID');
+      toast.error("Veuillez entrer un ID d'organisation");
       return;
     }
 
@@ -64,7 +64,7 @@ export default function SetupOrganizationPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Joined organization!');
+      toast.success("Vous avez rejoint l'organisation !");
     }
   };
 
@@ -75,9 +75,9 @@ export default function SetupOrganizationPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <Building2 className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Set up your organization</CardTitle>
+          <CardTitle className="text-2xl">Configurer votre organisation</CardTitle>
           <CardDescription>
-            Create a new organization or join an existing one to start managing activities
+            Créez une nouvelle organisation ou rejoignez une organisation existante pour commencer à gérer vos activités
           </CardDescription>
         </CardHeader>
 
@@ -85,11 +85,11 @@ export default function SetupOrganizationPage() {
           <form onSubmit={handleCreate}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="orgName">Organization Name</Label>
+                <Label htmlFor="orgName">Nom de l'organisation</Label>
                 <Input
                   id="orgName"
                   type="text"
-                  placeholder="My Tour Company"
+                  placeholder="Ma Société de Tours"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
                   required
@@ -98,7 +98,7 @@ export default function SetupOrganizationPage() {
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating...' : 'Create Organization'}
+                {isSubmitting ? 'Création...' : 'Créer une organisation'}
               </Button>
             </CardFooter>
           </form>
@@ -110,11 +110,11 @@ export default function SetupOrganizationPage() {
           <form onSubmit={handleJoin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="orgId">Organization ID</Label>
+                <Label htmlFor="orgId">ID de l'organisation</Label>
                 <Input
                   id="orgId"
                   type="text"
-                  placeholder="e.g. 7b3f0c2e-..."
+                  placeholder="ex. 7b3f0c2e-..."
                   value={orgId}
                   onChange={(e) => setOrgId(e.target.value)}
                   required
@@ -123,11 +123,11 @@ export default function SetupOrganizationPage() {
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <Button type="submit" variant="secondary" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Joining...' : 'Join Organization'}
+                {isSubmitting ? 'Connexion...' : 'Rejoindre une organisation'}
               </Button>
 
               <Button type="button" variant="ghost" className="w-full" onClick={signOut}>
-                Sign out
+                Déconnexion
               </Button>
             </CardFooter>
           </form>

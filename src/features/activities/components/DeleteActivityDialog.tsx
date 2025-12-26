@@ -27,19 +27,18 @@ export function DeleteActivityDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete activity?</AlertDialogTitle>
+          <AlertDialogTitle>Supprimer l'activité ?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete "{activity?.name}" and all associated departures and
-            reservations. This action cannot be undone.
+            Cette action supprimera définitivement "{activity?.name}" ainsi que tous les créneaux et réservations associés. Cette action est irréversible.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            Delete
+            Supprimer
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

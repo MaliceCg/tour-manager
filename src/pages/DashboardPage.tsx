@@ -6,7 +6,8 @@ import { fetchActivities } from '@/services/activities.service';
 import { fetchReservations } from '@/services/reservations.service';
 import { fetchSlots } from '@/services/slots.service';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format, startOfToday, endOfWeek } from 'date-fns';
+import { format, startOfToday } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface KpiCardProps {
   title: string;
@@ -55,9 +56,7 @@ export default function DashboardPage() {
     queryFn: () => fetchSlots(),
   });
 
-  // Calculate KPIs
   const today = format(startOfToday(), 'yyyy-MM-dd');
-  const weekEnd = format(endOfWeek(startOfToday()), 'yyyy-MM-dd');
 
   const upcomingSlots = slots.filter((s) => s.date >= today);
   const todayReservations = reservations.filter(
@@ -70,7 +69,6 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 md:p-8 space-y-8">
-      {/* Header */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -78,7 +76,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              {organization?.name || 'Dashboard'}
+              {organization?.name || 'Tableau de bord'}
             </h1>
             <p className="text-sm text-muted-foreground">
               Vue d'ensemble de votre organisation
@@ -87,7 +85,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           title="Activités"
@@ -99,14 +96,14 @@ export default function DashboardPage() {
         <KpiCard
           title="Créneaux à venir"
           value={upcomingSlots.length}
-          description={`À partir du ${format(startOfToday(), 'dd/MM')}`}
+          description={`À partir du ${format(startOfToday(), 'dd/MM', { locale: fr })}`}
           icon={<Calendar className="h-4 w-4" />}
           isLoading={loadingSlots}
         />
         <KpiCard
           title="Réservations du jour"
           value={todayReservations.length}
-          description={format(startOfToday(), 'dd MMMM yyyy')}
+          description={format(startOfToday(), 'dd MMMM yyyy', { locale: fr })}
           icon={<Users className="h-4 w-4" />}
           isLoading={loadingReservations}
         />
@@ -119,7 +116,6 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Quick summary */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -138,10 +134,7 @@ export default function DashboardPage() {
             ) : (
               <ul className="space-y-2">
                 {activities.slice(0, 5).map((activity) => (
-                  <li
-                    key={activity.id}
-                    className="flex items-center justify-between text-sm"
-                  >
+                  <li key={activity.id} className="flex items-center justify-between text-sm">
                     <span className="font-medium">{activity.name}</span>
                     <span className="text-muted-foreground">
                       {activity.capacity} places · {activity.price} €
@@ -175,16 +168,10 @@ export default function DashboardPage() {
             ) : (
               <ul className="space-y-2">
                 {upcomingSlots.slice(0, 5).map((slot) => (
-                  <li
-                    key={slot.id}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <span className="font-medium">
-                      {slot.activity?.name || 'Activité'}
-                    </span>
+                  <li key={slot.id} className="flex items-center justify-between text-sm">
+                    <span className="font-medium">{slot.activity?.name || 'Activité'}</span>
                     <span className="text-muted-foreground">
-                      {format(new Date(slot.date), 'dd/MM')} à {slot.time} ·{' '}
-                      {slot.reserved_seats}/{slot.total_seats}
+                      {format(new Date(slot.date), 'dd/MM', { locale: fr })} à {slot.time} · {slot.reserved_seats}/{slot.total_seats}
                     </span>
                   </li>
                 ))}
