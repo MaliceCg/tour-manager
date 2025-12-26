@@ -15,6 +15,7 @@ import SignUpPage from "./pages/SignUpPage";
 import SetupOrganizationPage from "./pages/SetupOrganizationPage";
 import TeamPage from "./pages/TeamPage";
 import ProfilePage from "./pages/ProfilePage";
+import WidgetPage from "./pages/WidgetPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/setup-organization" element={<SetupOrganizationPage />} />
+            <Route path="/widget/:activityId" element={<WidgetPage />} />
             
             {/* Protected routes */}
             <Route path="/" element={
