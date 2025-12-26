@@ -118,19 +118,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return { error: new Error('Not authenticated') };
 
     try {
-      // Create organization
-      const { data: orgData, error: orgError } = await supabase
+      // Generate org ID client-side to avoid needing SELECT after INSERT
+      const orgId = crypto.randomUUID();
+
+      // Create organization (no .select() to avoid SELECT policy issue)
+      const { error: orgError } = await supabase
         .from('organizations')
-        .insert({ name })
-        .select()
-        .single();
+        .insert({ id: orgId, name });
 
       if (orgError) throw orgError;
 
       // Update profile with organization_id
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ organization_id: orgData.id })
+        .update({ organization_id: orgId })
         .eq('id', user.id);
 
       if (profileError) throw profileError;
