@@ -25,13 +25,15 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/features/auth';
+import { usePendingReservationsCount } from '@/hooks/usePendingReservationsCount';
+import { Badge } from '@/components/ui/badge';
 
 const navigation = [
   { name: 'Tableau de bord', href: '/dashboard', icon: Building2 },
   { name: 'Activités', href: '/activities', icon: Compass },
   { name: 'Créneaux', href: '/schedule', icon: Clock },
   { name: 'Calendrier', href: '/calendar', icon: Calendar },
-  { name: 'Réservations', href: '/reservations', icon: Users },
+  { name: 'Réservations', href: '/reservations', icon: Users, showBadge: true },
 ];
 
 const adminNavigation = [
@@ -42,6 +44,7 @@ export function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const { profile, organization, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { count: pendingCount } = usePendingReservationsCount();
 
   const allNavigation = isAdmin 
     ? [...navigation, ...adminNavigation] 
@@ -94,24 +97,32 @@ export function AppLayout() {
             "flex-1 py-6 space-y-1",
             collapsed ? "px-2" : "px-4"
           )}>
-            {allNavigation.map((item) => (
-              collapsed ? (
+            {allNavigation.map((item) => {
+              const showBadge = 'showBadge' in item && item.showBadge && pendingCount > 0;
+              
+              return collapsed ? (
                 <Tooltip key={item.name} delayDuration={0}>
                   <TooltipTrigger asChild>
                     <NavLink
                       to={item.href}
                       className={({ isActive }) => cn(
-                        "flex items-center justify-center h-10 w-full rounded-md transition-colors",
+                        "flex items-center justify-center h-10 w-full rounded-md transition-colors relative",
                         isActive 
                           ? "bg-sidebar-accent text-sidebar-accent-foreground" 
                           : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                       )}
                     >
                       <item.icon className="h-5 w-5" />
+                      {showBadge && (
+                        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs font-medium">
+                          {pendingCount > 99 ? '99+' : pendingCount}
+                        </span>
+                      )}
                     </NavLink>
                   </TooltipTrigger>
                   <TooltipContent side="right">
                     {item.name}
+                    {showBadge && ` (${pendingCount} en attente)`}
                   </TooltipContent>
                 </Tooltip>
               ) : (
@@ -119,17 +130,22 @@ export function AppLayout() {
                   key={item.name}
                   to={item.href}
                   className={({ isActive }) => cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors relative",
                     isActive 
                       ? "bg-sidebar-accent text-sidebar-accent-foreground" 
                       : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                   )}
                 >
                   <item.icon className="h-5 w-5" />
-                  {item.name}
+                  <span className="flex-1">{item.name}</span>
+                  {showBadge && (
+                    <Badge variant="destructive" className="h-5 min-w-5 flex items-center justify-center px-1.5 text-xs">
+                      {pendingCount > 99 ? '99+' : pendingCount}
+                    </Badge>
+                  )}
                 </NavLink>
-              )
-            ))}
+              );
+            })}
           </nav>
 
           {/* User section */}
