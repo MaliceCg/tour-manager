@@ -14,37 +14,25 @@ export function usePendingReservationsCount() {
       return;
     }
 
-    // Fetch initial count
+    // Fetch count (works on every page because this hook is used in AppLayout)
     const fetchCount = async () => {
       setIsLoading(true);
       try {
-        const { count: pendingCount, error, data } = await (supabase as any)
+        const { data, count: pendingCount, error } = await (supabase as any)
           .from('reservation')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact' })
           .eq('organization_id', organization.id)
           .eq('status', 'pending');
 
-        console.log('Pending reservations query result:', { pendingCount, error, organizationId: organization.id });
+        if (error) throw error;
 
-        if (!error && pendingCount !== null) {
-          setCount(pendingCount);
-        } else if (!error && pendingCount === null) {
-          // Fallback: fetch actual data and count
-          const { data: reservations, error: fetchError } = await (supabase as any)
-            .from('reservation')
-            .select('id')
-            .eq('organization_id', organization.id)
-            .eq('status', 'pending');
-          
-          console.log('Fallback count:', reservations?.length, fetchError);
-          if (!fetchError && reservations) {
-            setCount(reservations.length);
-          }
-        }
-      } catch (e) {
-        console.error('Error fetching pending count:', e);
+        // supabase may return count=null depending on configuration; fallback to data length
+        setCount(typeof pendingCount === 'number' ? pendingCount : (data?.length ?? 0));
+      } catch {
+        setCount(0);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     fetchCount();
