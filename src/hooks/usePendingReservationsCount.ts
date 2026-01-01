@@ -19,7 +19,7 @@ export function usePendingReservationsCount() {
       setIsLoading(true);
       try {
         const { count: pendingCount, error } = await (supabase as any)
-          .from('reservations')
+          .from('reservation')
           .select('*', { count: 'exact', head: true })
           .eq('organization_id', organization.id)
           .eq('status', 'pending');
@@ -43,7 +43,7 @@ export function usePendingReservationsCount() {
         {
           event: '*',
           schema: 'public',
-          table: 'reservations',
+          table: 'reservation',
           filter: `organization_id=eq.${organization.id}`,
         },
         () => {
