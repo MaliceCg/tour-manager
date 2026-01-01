@@ -1,64 +1,45 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/features/auth';
+
 
 export function usePendingReservationsCount() {
   const [count, setCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const { organization } = useAuth();
+  
 
   useEffect(() => {
-    if (!organization?.id) {
-      setCount(0);
-      setIsLoading(false);
-      return;
-    }
+    let isActive = true;
 
-    // Fetch count (works on every page because this hook is used in AppLayout)
     const fetchCount = async () => {
-      setIsLoading(true);
       try {
         const { data, count: pendingCount, error } = await (supabase as any)
           .from('reservation')
           .select('id', { count: 'exact' })
-          .eq('organization_id', organization.id)
           .eq('status', 'pending');
 
         if (error) throw error;
 
-        // supabase may return count=null depending on configuration; fallback to data length
-        setCount(typeof pendingCount === 'number' ? pendingCount : (data?.length ?? 0));
+        const nextCount = typeof pendingCount === 'number' ? pendingCount : (data?.length ?? 0);
+        if (isActive) setCount(nextCount);
       } catch {
-        setCount(0);
+        if (isActive) setCount(0);
       } finally {
-        setIsLoading(false);
+        if (isActive) setIsLoading(false);
       }
     };
 
+    // initial fetch
+    setIsLoading(true);
     fetchCount();
 
-    // Subscribe to realtime changes
-    const channel = supabase
-      .channel('pending-reservations-count')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'reservation',
-          filter: `organization_id=eq.${organization.id}`,
-        },
-        () => {
-          // Refetch count on any change
-          fetchCount();
-        }
-      )
-      .subscribe();
+    // reliable refresh even without realtime configuration
+    const interval = window.setInterval(fetchCount, 15000);
 
     return () => {
-      supabase.removeChannel(channel);
+      isActive = false;
+      window.clearInterval(interval);
     };
-  }, [organization?.id]);
+  }, []);
 
   return { count, isLoading };
 }
